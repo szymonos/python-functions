@@ -19,5 +19,8 @@ RUN $ErrorActionPreference='Stop'; \
     New-Item /root/.config/powershell/ -Type Directory -Force; \
     Stop-Transcript;
 
+# Copy pwsh profile
+COPY library-scripts/profile.ps1 /opt/microsoft/powershell/7/
+
 # Default commands to pwsh
 ENTRYPOINT ["pwsh","-c"]

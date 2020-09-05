@@ -78,10 +78,6 @@ if ($Venv) {
     } else {
         "`e[96mVirtual environment already set.`e[0m"
     }
-    if (!(Test-Path $Profile.AllUsersAllHosts)) {
-        "`e[95mcopy powershell profile`e[0m"
-        Copy-Item './.devcontainer/profile.ps1' -Destination $Profile.AllUsersAllHosts -Force
-    }
     <# Add files to the project. #>
     if (!(Test-Path '.gitignore')) {
         "`e[95madd Python.gitignore`e[0m"

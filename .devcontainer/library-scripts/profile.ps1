@@ -1,4 +1,5 @@
 $OutputEncoding = [Console]::InputEncoding = [Console]::OutputEncoding = New-Object System.Text.UTF8Encoding
+$workspaceFolder = $PWD
 function Prompt {
     if ((Get-History).Count -gt 0) {
         $executionTime = ((Get-History)[-1].EndExecutionTime - (Get-History)[-1].StartExecutionTime).Totalmilliseconds
@@ -6,7 +7,7 @@ function Prompt {
     if ($IsWindows) {
         filter repl1 { $_ -replace ('[c-z]:\\Users\\{0}' -f $env:USERNAME), '~' }
     } else {
-        filter repl1 { $_ -replace ('{0}' -f $env:HOME), '~' }
+        filter repl1 { $_ -replace ('{0}' -f $workspaceFolder), '~' }
     }
     filter repl2 { $_ -replace 'Microsoft.PowerShell.Core\\FileSystem::', '' }
     $promptPath = $PWD | repl1 | repl2
