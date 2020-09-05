@@ -24,7 +24,7 @@ param (
 )
 
 <# Root directory of the application. #>
-$APP_DIR = 'cdp_app'
+$APP_DIR = 'app'
 
 <# Project environment variables. #>
 if ($SetEnv -or $GetEnv) {
