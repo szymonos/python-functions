@@ -30,16 +30,16 @@ if [ $1 = 'venv' ]; then
         echo "\e[94mVirtual environment already set.\e[0m"
     else
         python -m venv $venvPath
-        source $activateScript
     fi
 fi
 
 # *Upgrade all modules.
 if [ $1 = 'venv' ] || [ $1 = 'upgrade' ]; then
+    source $activateScript
     echo "\e[95mupgrade pip\e[0m"
     python -m pip install --upgrade pip
+    echo "\e[95minstall project requirements\e[0m"
     for val in $req_files[*]; do
-        echo "\e[95minstall project requirements\e[0m"
         python -m pip install -U -r $val --use-feature=2020-resolver
     done
 fi
