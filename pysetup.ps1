@@ -181,6 +181,6 @@ if ($GetEnv) {
 <# List installed modules. #>
 if ($List) {
     $modules = python -m pip list --format=json | ConvertFrom-Json; $modules
-    $pipPath = ((python -m pip -V) -split (' '))[3] -replace ('\\pip', '')
+    $pipPath = ((python -m pip -V) -split (' '))[3] -replace ('pip', '')
     "`n`e[96m{0} `e[94m|`e[96m ({1}) modules installed in `e[94m'{2}'`e[0m" -f (python -V), $modules.Count, $pipPath
 }
