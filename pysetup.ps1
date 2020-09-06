@@ -145,11 +145,11 @@ if ($Upgrade -or $Venv) {
 <# Generate key pairs for SSH authentication in remote repository. #>
 if ($SshKey) {
     if ($IsLinux) {
-        # create new authentication key pairs for SSH if not exist
         if (!(Test-Path '~/.ssh/id_rsa.pub')) {
+            # create new authentication key pairs for SSH if not exist
             sh -c "ssh-keygen -b 2048 -t rsa -f ~/.ssh/id_rsa -q -N ''"
         }
-        "`e[95mCopy below key and add to the repos' ssh public keys:`e[0m"
+        "`e[95mAdd below key to the repository's SSH keys:`e[0m"
         Get-Content '~/.ssh/id_rsa.pub'
     } elseif ($IsWindows) {
         "`e[96mYou don't need to crete key for SSH, use HTTPS.`e[0m`n"
