@@ -75,9 +75,9 @@ plugins=(
 )
 
 source $ZSH/oh-my-zsh.sh
-source app/.venv/bin/activate
 
 veactivate() { source app/.venv/bin/activate; }
+veactivate
 
 # User configuration
 
