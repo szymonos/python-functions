@@ -105,4 +105,4 @@ veactivate
 # alias zshconfig="mate ~/.zshrc"
 # alias ohmyzsh="mate ~/.oh-my-zsh"
 DEFAULT_USER=$USER
-prompt_context() {}
+prompt_context(){}
