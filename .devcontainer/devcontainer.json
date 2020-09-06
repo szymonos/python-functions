@@ -9,7 +9,7 @@
     ],
     // Set *default* container specific settings.json values on container create.
     "settings": {
-        "terminal.integrated.shell.linux": "/usr/bin/pwsh",
+        "terminal.integrated.shell.linux": "/bin/zsh",
         "workbench.colorTheme": "dark-plus-syntax"
     },
     // Add the IDs of extensions you want installed when the container is created.
@@ -25,11 +25,13 @@
         "shardulm94.trailing-spaces",
         "eamodio.gitlens",
         "tyriar.shell-launcher",
-        "dunstontc.dark-plus-syntax"
+        "dunstontc.dark-plus-syntax",
+        "foxundermoon.shell-format"
     ],
     "remoteEnv": {
         "APP_ROOT": "app",
         "AppSecret": "${localEnv:AppSecret}"
     },
-    "postCreateCommand": "pwsh -c './pysetup.ps1 -Venv'",
+    // "postCreateCommand": "pwsh -c './pysetup.ps1 -Venv'",
+    "postCreateCommand": "sh -c '$(wget -O- https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)'",
 }

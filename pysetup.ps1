@@ -2,14 +2,14 @@
 .SYNOPSIS
 Setup Python virtual environment in the project and much more...
 .EXAMPLE
-./pysetup.ps1 -Venv            # *Setup python virtual environment
-./pysetup.ps1 -Upgrade         # *Upgrade installed python modules
-./pysetup.ps1 -SshKey          # *Generate key pairs for SSH
-./pysetup.ps1 -SetEnv          # *Set environment variables
-./pysetup.ps1 -GetEnv          # *Get environment variables
-./pysetup.ps1 -List            # *List installed modules
-./pysetup.ps1 -Activate        # *Activate virtual environment
-./pysetup.ps1 -Deactivate      # *Deactivate virtual environment
+./pysetup.ps1 -Venv            #* Setup python virtual environment
+./pysetup.ps1 -Upgrade         #* Upgrade installed python modules
+./pysetup.ps1 -SshKey          #* Generate key pairs for SSH
+./pysetup.ps1 -SetEnv          #* Set environment variables
+./pysetup.ps1 -GetEnv          #* Get environment variables
+./pysetup.ps1 -List            #* List installed modules
+./pysetup.ps1 -Activate        #* Activate virtual environment
+./pysetup.ps1 -Deactivate      #* Deactivate virtual environment
 #>
 
 param (
@@ -53,7 +53,7 @@ $REQ = @{
     VALUE = "autopep8`nipykernel`nnotebook`npycodestyle`npytest`npylint`nisort`nlazy-object-proxy`nparso`npypath-magic`n"
 }
 
-<# Activate virtual environment #>
+<# Activate virtual environment. #>
 if ($Activate -or $Upgrade -or $Venv) {
     if ($null -eq $env:VIRTUAL_ENV -and $venvCreated) {
         & $activateScript
@@ -182,5 +182,5 @@ if ($GetEnv) {
 if ($List) {
     $modules = python -m pip list --format=json | ConvertFrom-Json; $modules
     $pipPath = ((python -m pip -V) -split (' '))[3] -replace ('\\pip', '')
-    "`n`e[96m{0} | ({1}) modules installed in '{2}'`e[0m" -f (python -V), $modules.Count, $pipPath
+    "`n`e[96m{0} `e[94m|`e[96m ({1}) modules installed in `e[94m'{2}'`e[0m" -f (python -V), $modules.Count, $pipPath
 }
