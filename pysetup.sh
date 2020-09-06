@@ -1,5 +1,5 @@
 #!/bin/bash
-# *Setup Python virtual environment in the project and much more...
+# *Setup Python virtual environment in the project.
 # sh -c "$(wget -O- https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"  #* install ohmyzsh
 # code ~/.zshrc  #* configure zsh
 : 'EXAMPLE
@@ -15,6 +15,7 @@ APP_DIR='app'
 
 # calculate script variables
 venvPath="$APP_DIR/.venv"
+activateScript="$venvPath/bin/activate"
 req_files=("requirements.txt" "app/requirements.txt")
 if [ -d $venvPath ]; then
     venvCreated=true
@@ -24,10 +25,11 @@ fi
 
 # *Setup python virtual environment.
 if [ $1 = 'venv' ]; then
-    if [ $venvCreated ]; then
+    if $venvCreated; then
         echo "\e[94mVirtual environment already set.\e[0m"
     else
         python -m venv $venvPath
+        source $activateScript
     fi
 fi
 
