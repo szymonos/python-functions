@@ -8,3 +8,4 @@ isort
 lazy-object-proxy
 parso
 pypath-magic
+setuptools

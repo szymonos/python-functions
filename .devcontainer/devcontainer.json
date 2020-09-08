@@ -5,7 +5,8 @@
         7071
     ],
     "mounts": [
-        "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind"
+        "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind",
+        "source=pf_venv,target=${containerWorkspaceFolder}/app/.venv,type=volume",
     ],
     // Set *default* container specific settings.json values on container create.
     "settings": {
@@ -26,7 +27,10 @@
         "eamodio.gitlens",
         "tyriar.shell-launcher",
         "dunstontc.dark-plus-syntax",
-        "foxundermoon.shell-format"
+        "foxundermoon.shell-format",
+        "aaron-bond.better-comments",
+        "kevinrose.vsc-python-indent",
+        "mechatroner.rainbow-csv"
     ],
     "remoteEnv": {
         "APP_ROOT": "app",

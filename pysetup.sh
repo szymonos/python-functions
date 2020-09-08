@@ -16,7 +16,7 @@ APP_DIR='app'
 venvPath="$APP_DIR/.venv"
 activateScript="$venvPath/bin/activate"
 req_files=("requirements.txt" "$APP_DIR/requirements.txt")
-if [ -d $venvPath ]; then
+if [ -f $activateScript ]; then
     venvCreated=true
 else
     venvCreated=false
@@ -30,13 +30,13 @@ if [ $1 = 'venv' ]; then
     else
         echo "\e[95mcreate virtual environment\e[0m"
         python -m venv $venvPath
+        source $activateScript
     fi
 fi
 
 #* Upgrade all modules.
 if [ $1 = 'venv' ] || [ $1 = 'upgrade' ]; then
-    source $activateScript
-    python -m pip install --upgrade pip
+    python -m pip install -U pip
     echo "\e[95minstall project requirements\e[0m"
     for val in $req_files[*]; do
         python -m pip install -U -r $val --use-feature=2020-resolver
@@ -56,9 +56,8 @@ fi
 
 #* List installed modules.
 if [ $1 = 'list' ]; then
-    mods=$(pip3 list | grep -v '^\-e' | cut -d = -f 1); echo $mods
+    mods=$(python -m pip list | grep -v '^\-e' | cut -d = -f 1); echo $mods
     modsCnt=$(expr $(echo $mods | wc -l) - 2)
     pipPath=$(python -m pip -V | cut -d ' ' -f 4)
-    ver=$(python -V)
-    echo "\n\e[96m$ver \e[94m|\e[96m $modsCnt modules installed in \e[94m${pipPath/pip/}\e[0m\n"
+    echo "\n\e[96m$(python -V) \e[94m|\e[96m $modsCnt modules installed in \e[94m${pipPath/pip/}\e[0m\n"
 fi
