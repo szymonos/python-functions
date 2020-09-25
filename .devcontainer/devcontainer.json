@@ -6,7 +6,7 @@
     ],
     "mounts": [
         "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind",
-        "source=pf_venv,target=${containerWorkspaceFolder}/app/.venv,type=volume",
+        "source=pf_venv,target=${containerWorkspaceFolder}/app/.venv,type=volume"
     ],
     // Set *default* container specific settings.json values on container create.
     "settings": {
@@ -30,12 +30,15 @@
         "foxundermoon.shell-format",
         "aaron-bond.better-comments",
         "kevinrose.vsc-python-indent",
-        "mechatroner.rainbow-csv"
+        "mechatroner.rainbow-csv",
+        "coenraads.bracket-pair-colorizer-2",
+        "littlefoxteam.vscode-python-test-adapter"
     ],
     "remoteEnv": {
         "APP_ROOT": "app",
-        "AppSecret": "${localEnv:AppSecret}"
+        "AppSecret": "${localEnv:AppSecret}",
+        "CONNSTR_DB": "${localEnv:CONNSTR_DB}"
     },
     // Setup Python virtual environemnt and install ohmyzsh.
-    "postCreateCommand": "zsh ./pysetup.sh venv && sh -c '$(wget -O- https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)' && sh -c ",
+    "postCreateCommand": "zsh ./pysetup.sh venv && sh -c '$(wget -O- https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)' && sh -c "
 }
