@@ -2,12 +2,17 @@
 # https://github.com/Azure/azure-functions-docker/blob/master/host/3.0/buster/amd64/python/python38/python38-core-tools.Dockerfile
 FROM mcr.microsoft.com/azure-functions/python:3.0-python3.8-core-tools
 
-# Install PowerShell
+    # Download and register the Microsoft repository GPG keys
 RUN wget https://packages.microsoft.com/config/debian/10/packages-microsoft-prod.deb && \
     dpkg -i packages-microsoft-prod.deb && \
     rm packages-microsoft-prod.deb && \
     apt-get update && \
-    apt-get install -y powershell
+    # Install Microsoft ODBC driver for SQL Server
+    # https://docs.microsoft.com/en-us/sql/connect/odbc/linux-mac/installing-the-microsoft-odbc-driver-for-sql-server
+    ACCEPT_EULA=Y apt-get install -y msodbcsql17 mssql-tools unixodbc-dev && \
+    # Install PowerShell and Neofetch
+    # https://docs.microsoft.com/en-us/powershell/scripting/install/installing-powershell-core-on-linux
+    apt-get install -y powershell neofetch
 
 # Install PowerShell modules
 SHELL ["/usr/bin/pwsh", "-c"]
