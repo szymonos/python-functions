@@ -25,7 +25,7 @@ def df_info(df: pd.DataFrame, clean: bool = False) -> pd.DataFrame:
     dnull = dict([(v, df[v].isna().any()) for v in df.columns.values])
     dcnt = dict([(v, len(df[v].dropna())) for v in df.columns.values])
     dunicode = dict(
-        [(v, df[v].apply(lambda r: bool(len(r) != len(r.encode())) if r is not np.nan else False).any())
+        [(v, df[v].apply(lambda r: len(r) != len(r.encode()) if type(r) == str else False).any())
          for v in df.columns.values
          if (df[v].notna().any() and df[v].dtypes == 'object')]
     )
@@ -47,7 +47,7 @@ def df_info(df: pd.DataFrame, clean: bool = False) -> pd.DataFrame:
     dmax.update(dict(
         [(v, int(df[v].max()))
          for v in df.columns.values
-         if (df[v].notna().any() and df[v].notna().any() and df[v].dtypes == 'float64')]
+         if (df[v].notna().any() and df[v].dtypes == 'float64')]
     ))
     dmin.update(dict(
         [(v, int(df[v].apply(lambda r: len(str(r)) if r is not np.nan else np.nan).min()))
