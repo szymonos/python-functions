@@ -11,11 +11,16 @@ import pandas as pd
 
 
 def df_info(df: pd.DataFrame, clean: bool = False) -> pd.DataFrame:
-    """Describe DataFrame."""
+    """
+    Function for analyzing DataFrame.
+    :param df: input DataFrame for analysis.
+    :param clean: flag for performing initial cleaning of DataFrame.
+    :return: DataFrame with analysis.
+    """
     start = datetime.now()
     if clean:
         df.fillna(np.nan, inplace=True)  # replace None with np.nan
-        df = df.applymap(lambda x: x.strip() if isinstance(x, str) else x)
+        df = df.applymap(lambda x: x.strip() if isinstance(x, str) else x)  # trim spaces
         df = df.replace('', np.nan)
     dnull = dict([(v, df[v].isna().any()) for v in df.columns.values])
     dcnt = dict([(v, len(df[v].dropna())) for v in df.columns.values])
