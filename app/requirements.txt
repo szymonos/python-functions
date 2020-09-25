@@ -1,2 +1,6 @@
 azure-core
 azure-functions
+pandas
+pyodbc
+retrying
+sqlalchemy
