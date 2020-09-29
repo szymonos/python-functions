@@ -116,21 +116,18 @@ if ($Upgrade -or $Venv) {
     "`e[95mupgrade pip`e[0m"
     python -m pip install --upgrade pip
     if (Test-Path $REQ.NAME) {
-        "`e[95minstall project requirements`e[0m"
-        foreach ($req in $req_files) {
-            python -m pip install -U -r $req --use-feature=2020-resolver
-        }
-        # upgrade all other modules
-        $req_modules = foreach ($req in $req_files) {
+        # get modules from requirements files
+        $modules = foreach ($req in $req_files) {
             Get-Content $req | ForEach-Object { ($_ -split ('=='))[0] }
         }
-        $modules = (python -m pip list --format=json | ConvertFrom-Json).name | `
-            Where-Object { $_ -notin $req_modules }
+        # add other modules
+        $modules += (python -m pip list --format=json | ConvertFrom-Json).name | `
+            Where-Object { $_ -notin $modules }
     } else {
         $modules = (python -m pip list --format=json | ConvertFrom-Json).name
     }
     if ($modules) {
-        "`e[95mupgrade other modules`e[0m"
+        "`e[95mupgrade all modules`e[0m"
         $reqs_temp = 'reqs_temp.txt'
         Set-Content -Path $reqs_temp -Value $modules
         python -m pip install -U -r $reqs_temp --use-feature=2020-resolver
