@@ -2,14 +2,14 @@
 .SYNOPSIS
 Setup Python virtual environment in the project and much more...
 .EXAMPLE
-.\pysetup.ps1 -Venv            #* Setup python virtual environment
-.\pysetup.ps1 -Upgrade         #* Upgrade installed python modules
-.\pysetup.ps1 -SshKey          #* Generate key pairs for SSH
-.\pysetup.ps1 -SetEnv          #* Set environment variables
-.\pysetup.ps1 -GetEnv          #* Get environment variables
-.\pysetup.ps1 -List            #* List installed modules
-.\pysetup.ps1 -Activate        #* Activate virtual environment
-.\pysetup.ps1 -Deactivate      #* Deactivate virtual environment
+.\pysetup.ps1 -Venv            # *Setup python virtual environment
+.\pysetup.ps1 -Upgrade         # *Upgrade installed python modules
+.\pysetup.ps1 -SshKey          # *Generate key pairs for SSH
+.\pysetup.ps1 -SetEnv          # *Set environment variables
+.\pysetup.ps1 -GetEnv          # *Get environment variables
+.\pysetup.ps1 -List            # *List installed modules
+.\pysetup.ps1 -Activate        # *Activate virtual environment
+.\pysetup.ps1 -Deactivate      # *Deactivate virtual environment
 #>
 
 param (
@@ -26,14 +26,6 @@ param (
 <# Root directory of the application. #>
 $APP_DIR = 'app'
 
-<# Project environment variables. #>
-if ($SetEnv -or $GetEnv) {
-    $envTable = [ordered]@{
-        APP_ROOT  = 'app';
-        AppSecret = 'value'; # !set value
-    }
-}
-
 # calculate script variables
 [array]$req_files = 'requirements.txt'
 if ($APP_DIR) {
@@ -42,6 +34,7 @@ if ($APP_DIR) {
         $req_files += $appReq
     }
 }
+$localSettings = [IO.Path]::Combine($APP_DIR, 'local.settings.json')
 $venvPath = [IO.Path]::Combine($APP_DIR, '.venv')
 $activeatePath = if ($IsWindows) { 'Scripts' } else { 'bin' }
 $activateScript = [IO.Path]::Combine($venvPath, $activeatePath, 'Activate.ps1')
@@ -50,7 +43,7 @@ $initScript = [IO.Path]::Combine('.vscode', 'init.ps1')
 $GITIGNORE = 'https://raw.githubusercontent.com/github/gitignore/master/Python.gitignore'
 $REQ = @{
     NAME  = $req_files[0]
-    VALUE = "autopep8`nipykernel`nnotebook`npycodestyle`npytest`npylint`nisort`nlazy-object-proxy`nparso`npypath-magic`nsetuptools`n"
+    VALUE = "autopep8`nipykernel`nnotebook`npycodestyle`npytest`npylint`npypath-magic`n"
 }
 
 <# Activate virtual environment. #>
@@ -153,25 +146,37 @@ if ($SshKey) {
     }
 }
 
-<# Set environment user variables used in the project. #>
-if ($SetEnv) {
-    # set environment targed depending on host system
-    $target = if ($IsWindows) { 'User' } else { 'Process' }
-    # set environment variables
-    foreach ($key in $envTable.Keys) {
-        [Environment]::SetEnvironmentVariable($key, $envTable.$key, $target)
-    }
-    # restart explorer to initialize environment variables
-    if ($IsWindows) { taskkill.exe /F /IM explorer.exe; Start-Process explorer.exe }
-}
-
-<# Get environment user variables used in the project. #>
-if ($GetEnv) {
-    foreach ($key in $envTable.Keys) {
-        [PSCustomObject]@{
-            Variable = $key;
-            Value    = [Environment]::GetEnvironmentVariable($key)
+<# Project environment variables. #>
+if ($SetEnv -or $GetEnv) {
+    if (Test-Path $localSettings) {
+        "`e[94mUsing variables configured in local.settings.json`e[0m"
+        $envVars = (Get-Content ([IO.Path]::Combine($APP_DIR, 'local.settings.json')) | ConvertFrom-Json).Values
+        <# Set environment user variables used in the project. #>
+        if ($SetEnv) {
+            # set environment targed depending on host system
+            foreach ($prop in $envVars.PSObject.Properties) {
+                if ($IsWindows) {
+                    [Environment]::SetEnvironmentVariable($prop.Name, $prop.Value, 'User')
+                } else {
+                    if (!([Environment]::GetEnvironmentVariable($prop.Name))) {
+                        "export $($prop.Name)=""$($prop.Value)""" >> ~/.profile
+                    }
+                }
+            }
+            # restart explorer to initialize environment variables
+            taskkill.exe /F /IM explorer.exe; Start-Process explorer.exe
         }
+        <# Get environment user variables used in the project. #>
+        if ($GetEnv) {
+            foreach ($prop in $envVars.PSObject.Properties) {
+                [PSCustomObject]@{
+                    Variable = $prop.Name;
+                    Value    = [Environment]::GetEnvironmentVariable($prop.Name)
+                }
+            }
+        }
+    } else {
+        Write-Warning "File 'local.settings.json' not exists!`n`t Set environment variables there."
     }
 }
 
