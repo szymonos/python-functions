@@ -6,8 +6,5 @@ pandas
 pycodestyle
 pytest
 pylint
-isort
-lazy-object-proxy
-parso
 pypath-magic
 setuptools

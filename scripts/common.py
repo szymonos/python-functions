@@ -27,7 +27,7 @@ def df_info(df: pd.DataFrame, clean: bool = False) -> pd.DataFrame:
     dnull = dict([(v, df[v].isna().any()) for v in df.columns.values])
     dcnt = dict([(v, len(df[v].dropna())) for v in df.columns.values])
     dunicode = dict(
-        [(v, df[v].apply(lambda r: len(r) != len(r.encode()) if type(r) == str else False).any())
+        [(v, df[v].astype('object').apply(lambda r: len(r) != len(r.encode()) if type(r) == str else False).any())
          for v in df.columns.values
          if (df[v].notna().any() and df[v].dtypes.kind == 'O')]
     )
@@ -52,12 +52,12 @@ def df_info(df: pd.DataFrame, clean: bool = False) -> pd.DataFrame:
          if (df[v].notna().any() and df[v].dtypes.kind == 'f')]
     ))
     dmin.update(dict(
-        [(v, int(df[v].apply(lambda r: len(str(r)) if r is not np.nan else np.nan).min()))
+        [(v, df[v].apply(lambda r: len(str(r)) if r is not np.nan else np.nan).astype('Int32').min())
          for v in df.columns.values
          if (df[v].notna().any() and df[v].dtypes.kind == 'O')]
     ))
     dmax.update(dict(
-        [(v, int(df[v].apply(lambda r: len(str(r)) if r is not np.nan else np.nan).max()))
+        [(v, df[v].apply(lambda r: len(str(r)) if r is not np.nan else np.nan).astype('Int32').max())
          for v in df.columns.values
          if (df[v].notna().any() and df[v].dtypes.kind == 'O')]
     ))
