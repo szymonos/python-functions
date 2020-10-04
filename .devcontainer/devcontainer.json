@@ -6,19 +6,30 @@
     ],
     "mounts": [
         "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind",
-        "source=pf_venv,target=${containerWorkspaceFolder}/app/.venv,type=volume"
     ],
     // Set *default* container specific settings.json values on container create.
     "settings": {
-        "terminal.integrated.shell.linux": "/bin/zsh",
-        "workbench.colorTheme": "dark-plus-syntax"
+        "terminal.integrated.shell.linux": "/bin/bash",
+        "workbench.colorTheme": "dark-plus-syntax",
+        "python.pythonPath": "/usr/local/bin/python",
+        "python.linting.enabled": true,
+        "python.linting.pylintEnabled": true,
+        "python.formatting.autopep8Path": "/usr/local/py-utils/bin/autopep8",
+        "python.formatting.blackPath": "/usr/local/py-utils/bin/black",
+        "python.formatting.yapfPath": "/usr/local/py-utils/bin/yapf",
+        "python.linting.banditPath": "/usr/local/py-utils/bin/bandit",
+        "python.linting.flake8Path": "/usr/local/py-utils/bin/flake8",
+        "python.linting.mypyPath": "/usr/local/py-utils/bin/mypy",
+        "python.linting.pycodestylePath": "/usr/local/py-utils/bin/pycodestyle",
+        "python.linting.pydocstylePath": "/usr/local/py-utils/bin/pydocstyle",
+        "python.linting.pylintPath": "/usr/local/py-utils/bin/pylint"
     },
     // Add the IDs of extensions you want installed when the container is created.
     "extensions": [
         "ms-azuretools.vscode-azurefunctions",
         "ms-azuretools.vscode-docker",
         "ms-python.python",
-        "ms-python.vscode-pylance",
+        "ms-pyright.pyright",
         "ms-vscode.powershell",
         "ms-python.anaconda-extension-pack",
         "redhat.vscode-yaml",
@@ -39,6 +50,6 @@
         "AppSecret": "${localEnv:AppSecret}",
         "CONNSTR_DB": "${localEnv:CONNSTR_DB}"
     },
-    // Setup Python virtual environemnt and install ohmyzsh.
-    "postCreateCommand": "zsh ./pysetup.sh venv && sh -c '$(wget -O- https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)' && sh -c "
+    // Install project requirements and update all packages.
+    "postCreateCommand": "bash ./pysetup.sh upgrade",
 }

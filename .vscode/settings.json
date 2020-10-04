@@ -2,8 +2,6 @@
     "azureFunctions.deploySubpath": "app",
     "azureFunctions.projectSubpath": "app",
     "azureFunctions.scmDoBuildDuringDeployment": true,
-    "azureFunctions.pythonVenv": ".venv",
-    "python.pythonPath": "app/.venv/bin/python",
     "python.envFile": "${workspaceFolder}/.vscode/env",
     "terminal.integrated.env.windows": {
         "PYTHONPATH": "./app"
