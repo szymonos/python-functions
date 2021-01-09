@@ -1,10 +1,10 @@
-autopep8
+black
+flake8
 ipykernel
+mypy
 notebook
-numpy
-pandas
-pycodestyle
+pydocstyle
 pytest
 pylint
+pylint-sqlalchemy
 pypath-magic
-setuptools

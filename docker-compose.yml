@@ -1,0 +1,8 @@
+version: '3.8'
+
+services:
+  pythonfunctions:
+    image: pythonfunctions
+    build:
+      context: .
+      dockerfile: ./Dockerfile

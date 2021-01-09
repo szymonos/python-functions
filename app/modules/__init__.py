@@ -4,8 +4,8 @@
 
     init module for package with shared classes.
 """
-from modules.database import DbCdp
+from modules.database import DbApp
 
 __all__ = [
-    'DbCdp'
+    'DbApp'
 ]

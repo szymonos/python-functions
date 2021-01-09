@@ -1,6 +1,16 @@
+azure-appconfiguration
+azure-common
 azure-core
 azure-functions
+azure-identity
+azure-keyvault-secrets
+azure-storage-blob
+azure-storage-file-datalake
+msal
+numpy
+numpyencoder
 pandas
 pyodbc
+ratelimit
 retrying
-sqlalchemy
+SQLAlchemy
