@@ -1,6 +1,5 @@
 {
     "azureFunctions.deploySubpath": "app",
-    "azureFunctions.projectSubpath": "app",
     "azureFunctions.scmDoBuildDuringDeployment": true,
     "python.envFile": "${workspaceFolder}/.vscode/env",
     "terminal.integrated.env.windows": {
@@ -9,20 +8,93 @@
     "azureFunctions.projectLanguage": "Python",
     "azureFunctions.projectRuntime": "~3",
     "debug.internalConsoleOptions": "neverOpen",
-    "python.linting.pycodestyleEnabled": true,
+    "python.formatting.provider": "black",
     "python.linting.enabled": true,
-    "python.testing.unittestArgs": [
-        "-v",
-        "-s",
-        "./test",
-        "-p",
-        "test_*.py"
+    "python.linting.pylintEnabled": true,
+    "python.linting.pylintArgs": [
+        "--load-plugins",
+        "pylint_sqlalchemy"
     ],
-    "python.testing.pytestEnabled": true,
+    "python.linting.flake8Enabled": true,
+    "python.linting.flake8Args": [
+        "--max-line-length=88",
+        "--ignore=E203,W503",
+        "--select=B,C,E,F,W,T4,B9",
+        "--max-complexity=32"
+    ],
+    "python.linting.mypyEnabled": true,
+    "python.linting.pydocstyleEnabled": true,
     "python.testing.nosetestsEnabled": false,
     "python.testing.unittestEnabled": false,
+    "python.testing.pytestEnabled": true,
     "python.testing.pytestArgs": [
         "test"
     ],
-    "python.linting.pylintEnabled": true
+    "editor.tokenColorCustomizations": {
+        "[Default Dark+]": {
+            "textMateRules": [
+                {
+                    "scope": [
+                        "comment.line"
+                    ],
+                    "settings": {
+                        "fontStyle": "italic",
+                        "foreground": "#666666"
+                    }
+                },
+                {
+                    "scope": [
+                        "string.quoted.docstring.multi"
+                    ],
+                    "settings": {
+                        "foreground": "#608B4E"
+                    }
+                },
+                {
+                    "scope": [
+                        "variable.parameter.function-call.python"
+                    ],
+                    "settings": {
+                        "foreground": "#D4D4D4"
+                    }
+                },
+                {
+                    "scope": [
+                        "meta.function-call.python",
+                        "meta.member.access.python"
+                    ],
+                    "settings": {
+                        "foreground": "#DCDCAA"
+                    }
+                },
+                {
+                    "scope": [
+                        "keyword.operator.assignment.python",
+                        "keyword.operator.comparison.python"
+                    ],
+                    "settings": {
+                        "foreground": "#C586C0"
+                    }
+                }
+            ]
+        }
+    },
+    "editor.semanticTokenColorCustomizations": {
+        "[Default Dark+]": {
+            "enabled": true,
+            "rules": {
+                "property": "#DCDCAA",
+                "comment": "#666666",
+                "parameter": "#D4D4D4",
+                "operator": "#C586C0",
+                "*.declaration": {
+                    "bold": true
+                },
+                "module:python": {
+                    "underline": true
+                },
+                "selfParameter:python": "#569CD6"
+            }
+        }
+    }
 }

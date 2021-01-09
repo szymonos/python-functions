@@ -245,10 +245,10 @@ function-naming-style=snake_case
 #function-rgx=
 
 # Good variable names which should always be accepted, separated by a comma.
-good-names=e,
-           i,
+good-names=i,
            j,
            k,
+           db,
            df,
            ex,
            Run,
@@ -319,7 +319,7 @@ indent-after-paren=4
 indent-string='    '
 
 # Maximum number of characters on a single line.
-max-line-length=119
+max-line-length=88
 
 # Maximum number of lines in a module.
 max-module-lines=1000
@@ -409,7 +409,6 @@ check-str-concat-over-line-jumps=no
 
 
 [TYPECHECK]
-ignored-modules=scoped_session
 
 # List of decorators that produce context managers, such as
 # contextlib.contextmanager. Add to this list to register other decorators that

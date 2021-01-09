@@ -8,36 +8,32 @@ ENV DEBIAN_FRONTEND=noninteractive
 # Configure apt and install packages
 RUN \
     #
-    # Install Azure Functions, .NET Core, and Azure CLI
     echo "deb [arch=amd64] https://packages.microsoft.com/repos/azure-cli/ $(lsb_release -cs) main" > /etc/apt/sources.list.d/azure-cli.list \
     && echo "deb [arch=amd64] https://packages.microsoft.com/repos/microsoft-debian-$(lsb_release -cs)-prod $(lsb_release -cs) main" > /etc/apt/sources.list.d/dotnetdev.list \
     && curl -sL https://packages.microsoft.com/keys/microsoft.asc | (OUT=$(apt-key add - 2>&1) || echo $OUT) \
-    && apt-get update \
-    && apt-get install -y azure-cli dotnet-sdk-3.1 azure-functions-core-tools-3 \
     #
-    # Install Docker CE CLI (needed for publish with --build-native-deps)
+    && apt-get update \
     && apt-get install -y apt-transport-https ca-certificates curl gnupg-agent software-properties-common lsb-release \
     && curl -fsSL https://download.docker.com/linux/$(lsb_release -is | tr '[:upper:]' '[:lower:]')/gpg | apt-key add - 2>/dev/null \
     && add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/$(lsb_release -is | tr '[:upper:]' '[:lower:]') $(lsb_release -cs) stable" \
-    && apt-get update \
+    && apt-get update && apt-get upgrade -y \
+    # Install Azure Functions, .NET Core, and Azure CLI
+    && apt-get install -y azure-cli dotnet-sdk-3.1 azure-functions-core-tools-3 \
+    # Install Docker CE CLI (needed for publish with --build-native-deps)
     && apt-get install -y docker-ce-cli \
     # Install Microsoft ODBC driver for SQL Server
     # https://docs.microsoft.com/en-us/sql/connect/odbc/linux-mac/installing-the-microsoft-odbc-driver-for-sql-server
     && ACCEPT_EULA=Y apt-get install -y msodbcsql17 mssql-tools unixodbc-dev \
-    # Install PowerShell and Neofetch
-    # https://docs.microsoft.com/en-us/powershell/scripting/install/installing-powershell-core-on-linux
-    && wget https://packages.microsoft.com/config/debian/10/packages-microsoft-prod.deb \
-    && dpkg -i packages-microsoft-prod.deb \
-    && apt-get update \
-    && apt-get install -y powershell \
+    && apt-get install -y powershell neofetch \
     #
     # Clean up
-    && rm packages-microsoft-prod.deb \
     && apt-get autoremove -y \
     && apt-get clean -y \
     && rm -rf /var/lib/apt/lists/* \
     && mkdir -p /home/vscode/.local/share \
     && chown -R vscode /home/vscode
+    # Add sftp server to known hosts
+    # && ssh-keyscan -H download.webtrekk.com >> /etc/ssh/ssh_known_hosts
 
 # Azure Functions Core Tools needs a place to save data
 ENV XDG_DATA_HOME=/home/vscode/.local/share
@@ -45,19 +41,9 @@ ENV XDG_DATA_HOME=/home/vscode/.local/share
 # Install PowerShell modules
 SHELL ["/usr/bin/pwsh", "-c"]
 RUN $ErrorActionPreference='Stop'; \
-    Start-Transcript -Path /Dockerfile.log -Append -IncludeInvocationHeader; \
-    $PSVersionTable | Write-Output; \
-    Install-Module posh-git -AllowPrerelease -Force; \
-    Install-Module PSReadLine -Force -SkipPublisherCheck -AllowPrerelease; \
-    New-Item /root/.config/powershell/ -Type Directory -Force; \
-    Stop-Transcript;
+    Install-Module PSReadLine -Force -SkipPublisherCheck -AllowPrerelease;
 
-# Copy shell profiles
-COPY src/profile.ps1 /opt/microsoft/powershell/7/
-# Switch back to dialog for any ad-hoc use of apt-get
-
-# Default commands to bash
-ENTRYPOINT ["bash","-c"]
+COPY src/profile.ps1 /root/.config/powershell/
 
 # Switch back to dialog for any ad-hoc use of apt-get
 ENV DEBIAN_FRONTEND=dialog
