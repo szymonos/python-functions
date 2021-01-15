@@ -13,7 +13,6 @@ from typing import List
 import pandas as pd
 from azure.core.exceptions import ResourceExistsError, ResourceNotFoundError
 from azure.storage.filedatalake import DataLakeServiceClient, FileSystemClient
-
 from configuration import DL
 
 

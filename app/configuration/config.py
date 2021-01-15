@@ -7,7 +7,7 @@ import os
 
 from configuration import get_appcf_settings
 
-ENV_NAME = os.environ["ASPNETCORE_ENVIRONMENT"]
+ENV_NAME = os.environ["ENV_STATE"]
 
 
 class DB:

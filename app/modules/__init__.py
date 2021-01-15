@@ -1,11 +1,10 @@
 """
-    __init__.py
-    -----------
+__init__.py.
 
-    init module for package with shared classes.
+init module for package with shared classes.
 """
 from modules.database import DbApp
 
 __all__ = [
-    'DbApp'
+    "DbApp",
 ]
