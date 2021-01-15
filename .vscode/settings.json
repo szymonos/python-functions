@@ -83,17 +83,17 @@
         "[Default Dark+]": {
             "enabled": true,
             "rules": {
-                "property": "#DCDCAA",
                 "comment": "#666666",
-                "parameter": "#D4D4D4",
                 "operator": "#C586C0",
-                "*.declaration": {
-                    "bold": true
-                },
+                // "parameter": "#D4D4D4",
+                "property:python": "#D4D4D4",
+                "selfParameter:python": "#569CD6",
                 "module:python": {
                     "underline": true
                 },
-                "selfParameter:python": "#569CD6"
+                "*.declaration": {
+                    "bold": true
+                }
             }
         }
     }

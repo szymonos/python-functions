@@ -7,6 +7,7 @@
 **/.project
 **/.settings
 **/.toolstarget
+**/.venv
 **/.vs
 **/.vscode
 **/*.*proj.user
@@ -22,4 +23,5 @@
 **/obj
 **/secrets.dev.yaml
 **/values.dev.yaml
+**/local.settings.json
 README.md

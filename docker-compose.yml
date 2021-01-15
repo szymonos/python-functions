@@ -1,8 +1,9 @@
 version: '3.8'
 
 services:
-  pythonfunctions:
+  pyfapp:
     image: pythonfunctions
+    container_name: pyfunction
     build:
       context: .
-      dockerfile: ./Dockerfile
+      dockerfile: app/Dockerfile

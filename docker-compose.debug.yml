@@ -2,9 +2,17 @@ version: '3.8'
 
 services:
   pyfapp:
+    image: pythonfunctions
     container_name: pyfunction
     build:
       context: .
       dockerfile: app/Dockerfile
     ports:
       - 7071:80
+    environment:
+      - APPCF_ENDPOINT=${APPCF_ENDPOINT}
+      - ENV_STATE=${ENV}
+      - AZURE_CLIENT_ID=${AZURE_CLIENT_ID}
+      - AZURE_CLIENT_SECRET=${AZURE_CLIENT_SECRET}
+      - AZURE_TENANT_ID=${AZURE_TENANT_ID}
+      - APP_ROOT=${APP_ROOT}
