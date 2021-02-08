@@ -85,8 +85,8 @@
             "rules": {
                 "comment": "#666666",
                 "operator": "#C586C0",
-                // "parameter": "#D4D4D4",
-                "property:python": "#D4D4D4",
+                "parameter": "#D4D4D4",
+                "property": "#9CDCFE",
                 "selfParameter:python": "#569CD6",
                 "module:python": {
                     "underline": true
