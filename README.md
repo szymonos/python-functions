@@ -18,6 +18,7 @@ app                         # azure function code which will be deployed
  | - modules
  | | - __init__.py
  | | - ...
+ | - Dockerfile             # application container dockerfile
  | - host.json
  | - requirements.txt       # application requirements
 scripts                     # development scripts
@@ -27,12 +28,13 @@ test                        # unit tests folder
  | - __init__.py
  | - test_function.py
 .dockerignore               # dockerignore of application container
-.gitignore                  # python gitignore
-.pep8                       # pycodestyle configuration
-Dockerfile                  # application container dockerfile
+.gitattributes              # python gitignore
+.gitignore                  # project specific git settings
 LICENCSE                    # project license
 pylintrc                    # pylint configuration file
 README.md                   # this file
 pysetup.ps1                 # powershell script for setting python environment
 pysetup.sh                  # bash script for setting python environment
 requirements.txt            # development requirements
+docker-compose.debug.yml    # application docker-compose file for development
+docker-compose.yml          # application docker-compose file
