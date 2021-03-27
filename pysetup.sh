@@ -15,9 +15,11 @@ deactivate                 # *Deactivate virtual environment
 # *Root directory of the application.
 APP_DIR='app'
 
+# constants
+VENV_PATH=".venv"
+
 # calculate script variables
-venvPath="$APP_DIR/.venv"
-activateScript="$venvPath/bin/activate"
+activateScript="$VENV_PATH/bin/activate"
 localSettings="$APP_DIR/local.settings.json"
 [ -f $activateScript ] && venvCreated=true || venvCreated=false
 req_files=("requirements.txt")
@@ -29,7 +31,7 @@ if [ $1 = 'venv' ]; then
         printf "\033[96mVirtual environment already set.\033[0m\n"
     else
         printf "\033[96mSet up Python environment.\033[0m\n"
-        python -m venv $venvPath
+        python -m venv $VENV_PATH
         source $activateScript
     fi
 fi
@@ -38,7 +40,7 @@ fi
 if [ $1 = 'delvenv' ]; then
     if $venvCreated; then
         printf "\033[96mDelete virtual environment.\033[0m\n"
-        rm -fr $venvPath
+        rm -fr $VENV_PATH
     else
         printf "\033[96mVirtual environment not exists.\033[0m\n"
     fi

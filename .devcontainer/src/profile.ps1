@@ -9,6 +9,8 @@ code $Profile.CurrentUserAllHosts
 #>
 # make PowerShell console Unicode (UTF-8) aware
 $OutputEncoding = [Console]::InputEncoding = [Console]::OutputEncoding = New-Object System.Text.UTF8Encoding
+# set variable for Startup Working Directory
+$SWD = $PWD.Path
 # enable predictive suggestion feature in PSReadLine
 try { Set-PSReadLineOption -PredictionSource History } catch {}
 function Prompt {
@@ -28,19 +30,19 @@ function Prompt {
     } else {
         "0 ms"
     }
-    # show only current folder or ~ in home directory as prompt path
-    $promptPath = if ($PWD.ToString() -eq $HOME) { '~' } else { Split-Path $PWD -Leaf }
+    # set prompt path
+    $promptPath = $PWD.Path.Replace($HOME, '~').Replace('Microsoft.PowerShell.Core\FileSystem::', '') -replace '\\$', ''
+    $split = $promptPath.Split([System.IO.Path]::DirectorySeparatorChar)
+    if ($split.Count -gt 3) {
+        $promptPath = [System.IO.Path]::Join((($split[0] -eq '~') ? '~' : $null), '...', $split[-2], $split[-1])
+    }
     [Console]::Write("[`e[1m`e[38;2;99;143;79m{0}`e[0m]", $executionTime)
     # set arrow color depending on last command execution status
-    if ($execStatus) {
-        [Console]::Write("`e[36m`u{279C}`e[0m ")
-    } else {
-        [Console]::Write("`e[31m`u{279C}`e[0m ")
-    }
-    [Console]::Write("`e[1m`e[34m{0}", $promptPath)
+    $execStatus ? [Console]::Write("`e[36m") : [Console]::Write("`e[31m")
+    [Console]::Write("`u{279C} `e[1m`e[34m{0}", $promptPath)
     try {
         # show git branch name
-        if ([array]$gstatus = git status -b --porcelain=v1 2>$null) {
+        if ($gstatus = [string[]]@(git status -b --porcelain=v1 2>$null)) {
             [Console]::Write(" `e[96m(")
             # parse branch name
             if ($gstatus[0] -like '## No commits yet*') {
@@ -49,18 +51,29 @@ function Prompt {
                 $branch = $gstatus[0].Split(' ')[1].Split('.')[0]
             }
             # format branch name color depending on working tree status
-            if ($gstatus.Count -eq 1) {
-                [Console]::Write("`e[92m")  # green
-            } else {
-                [Console]::Write("`e[91m")  # red
-            }
+            ($gstatus.Count -eq 1) ? [Console]::Write("`e[92m") : [Console]::Write("`e[91m")
             [Console]::Write("{0}`e[96m)", $branch)
         }
-    }
-    catch {}
+    } catch {}
     return "`e[0m{0} " -f ('>' * ($nestedPromptLevel + 1))
 }
+function Get-CmdletAlias ($cmdletname) {
+    <#.SYNOPSIS
+    Gets the aliases for any cmdlet.#>
+    Get-Alias |
+    Where-Object -FilterScript { $_.Definition -like "*$cmdletname*" } |
+    Sort-Object -Property Definition, Name |
+    Select-Object -Property Definition, Name
+}
+function Set-StartupLocation {
+    <#.SYNOPSIS
+    Sets the current working location to the startup working directory.#>
+    Set-Location $SWD
+}
+Set-Alias -Name cds -Value Set-StartupLocation
+Set-Alias -Name which -Value Get-Command
+
 # PowerShell startup information
 Clear-Host
-Write-Output ('PowerShell ' + $PSVersionTable.PSVersion.ToString())
-Write-Output ('BootUp: ' + (Get-Uptime -Since).ToString() + ' | Uptime: ' + (Get-Uptime).ToString())
+"PowerShell $($PSVersionTable.PSVersion)"
+"BootUp: $((Get-Uptime -Since).ToString()) | Uptime: $(Get-Uptime)"

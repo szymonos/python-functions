@@ -3,7 +3,7 @@
 Setup Python virtual environment in the project and much more...
 .EXAMPLE
 .\pysetup.ps1 -Venv            # *Setup python virtual environment
-.\pysetup.ps1 -DelVenv          # *Delete python virtual environment
+.\pysetup.ps1 -DelVenv         # *Delete python virtual environment
 .\pysetup.ps1 -Reqs            # *Install requirements
 .\pysetup.ps1 -Upgrade         # *Upgrade installed python modules
 .\pysetup.ps1 -SshKey          # *Generate key pairs for SSH
@@ -30,6 +30,10 @@ param (
 # *Root directory of the application.
 $APP_DIR = 'app'
 
+# constants
+$VENV_DIR = '.venv'
+$GITIGNORE = 'https://raw.githubusercontent.com/github/gitignore/master/Python.gitignore'
+
 # calculate script variables
 [array]$req_files = 'requirements.txt'
 if ($APP_DIR) {
@@ -38,17 +42,15 @@ if ($APP_DIR) {
         $req_files += $appReq
     }
 }
+$req = @{
+    name  = $req_files[0]
+    value = "black`nflake8`nipykernel`nnotebook`npydocstyle`npylint`npypath-magic`n"
+}
 $localSettings = [IO.Path]::Combine($APP_DIR, 'local.settings.json')
-$venvPath = [IO.Path]::Combine($APP_DIR, '.venv')
 $activeatePath = if ($IsWindows) { 'Scripts' } else { 'bin' }
-$activateScript = [IO.Path]::Combine($venvPath, $activeatePath, 'Activate.ps1')
+$activateScript = [IO.Path]::Combine($VENV_DIR, $activeatePath, 'Activate.ps1')
 $venvCreated = Test-Path $activateScript
 $initScript = [IO.Path]::Combine('.vscode', 'init.ps1')
-$GITIGNORE = 'https://raw.githubusercontent.com/github/gitignore/master/Python.gitignore'
-$REQ = @{
-    NAME  = $req_files[0]
-    VALUE = "black`nflake8`nipykernel`nmypy`nnotebook`npydocstyle`npylint`npypath-magic`n"
-}
 
 # *Activate virtual environment.
 if ($Activate -or $Upgrade -or $Venv) {
@@ -68,7 +70,7 @@ if ($Venv) {
     if ($null -eq $env:VIRTUAL_ENV) {
         "`e[96mSet up Python environment.`e[0m"
         if (!$venvCreated) {
-            python -m venv $venvPath
+            python -m venv $VENV_DIR
         }
         # activate virtual environment
         & $activateScript
@@ -80,14 +82,13 @@ if ($Venv) {
         "`e[95madd Python.gitignore`e[0m"
         (New-Object System.Net.WebClient).DownloadFile($GITIGNORE, '.gitignore')
     }
-    if (!(Test-Path $REQ.NAME)) {
+    if (!(Test-Path $req.name)) {
         "`e[95madd requirements.txt with dev modules`e[0m"
-        New-Item $REQ.NAME -Value $REQ.VALUE | Out-Null
+        New-Item $req.name -Value $req.value | Out-Null
     }
     if (!(Test-Path $initScript)) {
         "`e[95mcreate init.ps1 for virtual environment activation`e[0m"
-        $initContent = ('$activatePath = if ($IsWindows) { ''Scripts'' } else { ''bin'' }' + "`n" +
-            '$activateScript = [IO.Path]::Combine(''{0}'', ''.venv'', $activatePath, ''Activate.ps1'')' -f $APP_DIR +
+        $initContent = ('$activateScript = [IO.Path]::Combine(".venv", ($IsWindows ? "Scripts" : "bin"), "Activate.ps1")' +
             "`n" + 'if (Test-Path $activateScript) { & $activateScript }' + "`n")
         New-Item -Path $initScript -Value $initContent -Force | Out-Null
     }
@@ -115,7 +116,7 @@ if ($DelVenv) {
     }
     if ($venvCreated) {
         "`e[96mDelete virtual environment.`e[0m"
-        Remove-Item $venvPath -Recurse -Force
+        Remove-Item $VENV_DIR -Recurse -Force
     } else {
         "`e[96mVirtual environment not exists.`e[0m"
     }
@@ -129,7 +130,7 @@ if ($Reqs -or $Venv -or $Upgrade) {
 
 # *Install requirements.
 if ($Reqs -or $Venv) {
-    if (Test-Path $REQ.NAME) {
+    if (Test-Path $req.name) {
         # get modules from requirements files
         $modules = $req_files | ForEach-Object { Get-Content $_ }
     }
@@ -184,17 +185,17 @@ if ($SetEnv -or $GetEnv) {
             foreach ($prop in $envVars.PSObject.Properties) {
                 if ($IsWindows) {
                     [Environment]::SetEnvironmentVariable($prop.Name, $prop.Value, 'User')
+                    # refresh environment
+                    try {
+                        RefreshEnv.cmd
+                    } catch {
+                        taskkill.exe /F /IM explorer.exe; Start-Process explorer.exe
+                    }
                 } else {
                     if (!([Environment]::GetEnvironmentVariable($prop.Name))) {
                         "export $($prop.Name)=""$($prop.Value)""" >> ~/.profile
                     }
                 }
-            }
-            # refresh environment
-            try {
-                RefreshEnv.cmd
-            } catch {
-                taskkill.exe /F /IM explorer.exe; Start-Process explorer.exe
             }
         }
         # get environment user variables used in the project

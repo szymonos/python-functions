@@ -55,5 +55,5 @@
         "ENV_STATE": "Development"
     },
     // Install project requirements and update all packages.
-    "postCreateCommand": "bash ./pysetup.sh reqs",
+    "postCreateCommand": "bash pysetup.sh reqs"
 }
