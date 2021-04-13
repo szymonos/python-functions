@@ -52,7 +52,9 @@
         "AZURE_CLIENT_ID": "${localEnv:AZURE_CLIENT_ID}",
         "AZURE_CLIENT_SECRET": "${localEnv:AZURE_CLIENT_SECRET}",
         "AZURE_TENANT_ID": "${localEnv:AZURE_TENANT_ID}",
-        "ENV_STATE": "Development"
+        "ENV_STATE": "Development",
+        "IMG_TAG": "v210101.1",
+        "PYTHONPATH": "./app"
     },
     // Install project requirements and update all packages.
     "postCreateCommand": "bash pysetup.sh reqs"

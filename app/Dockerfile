@@ -25,6 +25,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends apt-utils \
 
 COPY app/ .
 
+ARG TAG_NAME
+
+ENV IMG_TAG=$TAG_NAME
+
 # Switches to a non-root user and changes the ownership of the /app folder"
 # RUN useradd appuser && chown -R appuser /home/site/wwwroot
 # USER appuser

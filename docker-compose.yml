@@ -2,8 +2,9 @@ version: '3.8'
 
 services:
   pyfapp:
-    image: pythonfunctions
-    container_name: pyfunction
+    image: acrapp.azurecr.io/${BRANCH}/pyfapp:${TAG}
     build:
       context: .
       dockerfile: app/Dockerfile
+      args:
+        TAG_NAME: ${TAG}

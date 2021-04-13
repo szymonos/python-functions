@@ -2,11 +2,13 @@ version: '3.8'
 
 services:
   pyfapp:
-    image: pythonfunctions
-    container_name: pyfunction
+    image: acrapp.azurecr.io/${BRANCH}/pyfapp:${TAG}
+    container_name: pyfapp
     build:
       context: .
       dockerfile: app/Dockerfile
+      args:
+        TAG_NAME: ${TAG}
     ports:
       - 7071:80
     environment:

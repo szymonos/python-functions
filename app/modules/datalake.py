@@ -37,16 +37,17 @@ class DataLakeService:
             )
         return filesystem_client
 
-    def append_data(self, dir_name: str, file_name: str, data: bytes) -> None:
+    def append_data(self, file_path: str, data: bytes) -> None:
         """Append data to the file."""
-        dir_client = self._container.get_directory_client(dir_name)
-        file_client = dir_client.get_file_client(file_name)
+        file_client = self._container.get_file_client(file_path)
         offset: int = 0
         try:
             offset = file_client.get_file_properties().size
         except ResourceNotFoundError:
-            logging.info("%s append_data: File %s not found", self.__class__, file_name)
-            file_client = dir_client.create_file(file_name)
+            logging.info(
+                "%s append_data.\nFile '%s' not found", self.__class__, file_path
+            )
+            file_client.create_file()
         file_client.append_data(data, offset, len(data))
         file_client.flush_data(len(data) + offset)
 
@@ -152,6 +153,26 @@ class DataLakeService:
         self.save_dataframe(df_full, file_name)
         print(f"\033[92mElapsed time: {datetime.now() - start}\033[0m")
 
+    def list_files(self, dir_name: str) -> pd.DataFrame:
+        """Get file paths from specified directory ordered by modified date."""
+        paths = self._container.get_paths(dir_name)
+        try:
+            lst = [
+                {
+                    "permissions": x.permissions,
+                    "name": x.name,
+                    "content_length": x.content_length,
+                    "is_directory": x.is_directory,
+                    "last_modified": x.last_modified,
+                }
+                for x in paths
+                if x.is_directory is False
+            ]
+            df = pd.DataFrame(lst).sort_values(by="last_modified", ascending=False)
+        except (AttributeError, KeyError):
+            df = pd.DataFrame()
+        return df
+
     def get_files_list(self, dir_name: str) -> list:
         """Get file paths from specified directory ordered by modified date."""
         paths = self._container.get_paths(dir_name)
@@ -221,13 +242,27 @@ class DataLakeService:
         directory_client_dest.create_directory()
         file_client.rename_file(f"{file_client.file_system_name}/{dest_file}")
 
-    def delete_directory(self, dir_name: str) -> None:
-        """Return paths to subdirectories in specified directory."""
-        self._container.delete_directory(dir_name)
+    def delete_directory(self, dir_path: str) -> None:
+        """Delete specified directory."""
+        try:
+            self._container.delete_directory(dir_path)
+        except ResourceNotFoundError:
+            logging.info(
+                "%s delete_directory.\nDirectory %s not found", self.__class__, dir_path
+            )
+
+    def delete_file(self, file_path: str) -> None:
+        """Delete specified file."""
+        try:
+            self._container.delete_file(file_path)
+        except ResourceNotFoundError:
+            logging.info(
+                "%s delete_file.\nFile %s not found", self.__class__, file_path
+            )
 
 
 def create_datalake_service_client() -> DataLakeServiceClient:
-    """Return DataLake Service Clien."""
+    """Return DataLake Service Client."""
     account_name = DL.STORAGE_ACCOUNT_NAME
     credential = DL.STORAGE_ACCOUNT_KEY
     account_url = f"https://{account_name}.dfs.core.windows.net/"

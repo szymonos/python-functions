@@ -1,0 +1,204 @@
+trigger:
+  branches:
+    include:
+      - dev
+      - main
+  paths:
+    include:
+      - app
+
+pool:
+  vmImage: "ubuntu-latest"
+
+variables:
+  - group: lib-cntr-build
+  - name: composeService
+    value: pyfapp
+  - name: imageTag
+    value: b$(Build.BuildNumber)
+  - name: svcConnectionDev
+    value: "SVCP Dev"
+  - name: svcConnectionProd
+    value: "SVCP Prod"
+  - name: appName
+    value: "python-functionapp"
+  - name: rgName
+    value: "RG-AppSvc-Prod"
+  - name: slotName
+    value: staging
+  - name: appDir
+    value: app
+
+stages:
+  - stage: test
+    jobs:
+      - job: Test
+        condition: eq(variables['Build.Reason'], 'PullRequest')
+        variables:
+          - group: kv-app-dev
+          - group: lib-appcf-auth
+          - name: pythonVersion
+            value: "3.8"
+        steps:
+          - task: UsePythonVersion@0
+            displayName: Use Python $(pythonVersion)
+            inputs:
+              versionSpec: $(pythonVersion)
+          - bash: |
+              pip install -r $(appDir)/requirements.txt
+              pip install pytest
+              pytest test --doctest-modules --junitxml=junit/coverage.xml
+            displayName: Run Unit Tests
+            env:
+              APPCF_ENDPOINT: $(AppcfEndpoint)
+              ASPNETCORE_ENVIRONMENT: $(EnvironmentName)
+              AZURE_CLIENT_ID: $(ApplicationId)
+              AZURE_CLIENT_SECRET: $(app-svcprinc-appcf)
+              AZURE_TENANT_ID: $(TenantId)
+              PYTHONPATH: $(Build.SourcesDirectory)/$(appDir)
+          - task: PublishTestResults@2
+            displayName: Publish Test Results
+            inputs:
+              testResultsFiles: "**/coverage.xml"
+              failTaskOnFailedTests: true
+              testRunTitle: Unit Test
+            condition: succeededOrFailed()
+  - stage: build
+    displayName: Build
+    condition: ne(variables['Build.Reason'], 'PullRequest')
+    dependsOn: test
+    jobs:
+      - job: Deploy
+        displayName: ACR Build
+        steps:
+          - task: AzureCLI@2
+            displayName: Azure CLI
+            inputs:
+              azureSubscription: $(svcConnectionProd)
+              scriptType: bash
+              scriptLocation: inlineScript
+              inlineScript: az acr build --image $(Build.SourceBranchName)/$(composeService):$(imageTag) --registry $(registryName) --build-arg TAG_NAME=$(imageTag) --file $(appDir)/Dockerfile .
+  - stage: staging
+    displayName: "Staging Deploy"
+    dependsOn: build
+    condition: eq(variables['Build.SourceBranchName'], 'main')
+    jobs:
+      - deployment: Deploy
+        environment: staging
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - task: AzureAppServiceManage@0
+                  displayName: "Start App Service: $(appName)-$(slotName)"
+                  inputs:
+                    azureSubscription: $(svcConnectionProd)
+                    Action: "Start Azure App Service"
+                    WebAppName: $(appName)
+                    SpecifySlotOrASE: true
+                    ResourceGroupName: $(rgName)
+                    Slot: $(slotName)
+                - task: AzureRmWebAppDeployment@4
+                  displayName: "Deploy: $(appName)"
+                  inputs:
+                    azureSubscription: $(svcConnectionProd)
+                    appType: functionAppContainer
+                    WebAppName: $(appName)
+                    deployToSlotOrASE: true
+                    ResourceGroupName: $(rgName)
+                    SlotName: $(slotName)
+                    DockerNamespace: $(registryEndpoint)
+                    DockerRepository: $(Build.SourceBranchName)/$(composeService)
+                    DockerImageTag: $(imageTag)
+                - pwsh: |
+                    $uri = 'https://$(appName)-$(slotName).azurewebsites.net/api/health'
+                    Write-Output $uri
+                    while ($true) {
+                        $response = 'Site not available'
+                        try {
+                            $response = (Invoke-RestMethod -Uri $uri).message
+                        } catch { }
+                        Write-Output "$(Get-Date -Format s) | $response"
+                        if ($response -eq '$(imageTag)') {
+                            break
+                        } else {
+                            Start-Sleep -Seconds 30
+                        }
+                    }
+                  timeoutInMinutes: 12
+  - stage: swap
+    displayName: "Swap with Production"
+    dependsOn: staging
+    jobs:
+      - deployment: Swap
+        environment: swap-approval
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - task: AzureAppServiceManage@0
+                  displayName: "Swap Slots: $(appName)"
+                  inputs:
+                    azureSubscription: $(svcConnectionProd)
+                    WebAppName: $(appName)
+                    ResourceGroupName: $(rgName)
+                    SourceSlot: $(slotName)
+                    SwapWithProduction: True
+  - stage: stop
+    displayName: "Stop Slot"
+    dependsOn: swap
+    condition: and(always(), eq(variables['Build.SourceBranchName'], 'main'))
+    jobs:
+      - job: Job
+        steps:
+          - checkout: none
+          - task: AzureAppServiceManage@0
+            displayName: "Stop App Service: $(appName)-$(slotName)"
+            inputs:
+              azureSubscription: $(svcConnectionProd)
+              Action: "Stop Azure App Service"
+              WebAppName: $(appName)
+              SpecifySlotOrASE: true
+              ResourceGroupName: $(rgName)
+              Slot: $(slotName)
+  - stage: development
+    displayName: "Deploy Dev"
+    dependsOn: build
+    condition: eq(variables['Build.SourceBranchName'], 'dev')
+    jobs:
+      - deployment: Deploy
+        environment: development
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - task: AzureRmWebAppDeployment@4
+                  displayName: "Deploy: $(appName)-dev"
+                  inputs:
+                    azureSubscription: $(svcConnectionDev)
+                    appType: functionAppContainer
+                    WebAppName: "$(appName)-dev"
+                    DockerNamespace: $(registryEndpoint)
+                    DockerRepository: $(Build.SourceBranchName)/$(composeService)
+                    DockerImageTag: $(imageTag)
+  - stage: fail
+    displayName: "Pipeline Failed"
+    dependsOn: [test, build, staging, swap, stop, development]
+    condition: and(failed(), ne(variables['Build.Reason'], 'PullRequest'))
+    jobs:
+      - job: Job
+        steps:
+          - checkout: none
+          - task: mspremier.CreateWorkItem.CreateWorkItem-task.CreateWorkItem@1
+            displayName: "Create bug on pipeline fail"
+            inputs:
+              teamProject: "Team Project"
+              workItemType: Bug
+              title: "$(Build.Repository.Name) - pipeline $(Build.BuildNumber) failed"
+              assignedTo: "$(Build.RequestedForId)"
+              areaPath: 'Team Project\APP Team'
+              iterationPath: "APP Team@currentIteration"
+              associate: true
+              linkWorkItems: true
+              linkType: "System.LinkTypes.Hierarchy-Reverse"
+              targetId: 78
