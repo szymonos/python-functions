@@ -31,6 +31,7 @@ variables:
 
 stages:
   - stage: test
+    displayName: Test
     jobs:
       - job: Test
         condition: eq(variables['Build.Reason'], 'PullRequest')
@@ -68,8 +69,7 @@ stages:
     condition: ne(variables['Build.Reason'], 'PullRequest')
     dependsOn: test
     jobs:
-      - job: Deploy
-        displayName: ACR Build
+      - job: AcrBuild
         steps:
           - task: AzureCLI@2
             displayName: Azure CLI
