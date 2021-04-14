@@ -1,15 +1,15 @@
 #!/bin/bash
 # *Setup Python environment in the project.
 : '
-bash ./pysetup.sh venv     # *Setup python virtual environment
-bash ./pysetup.sh delvenv  # *Delete python virtual environment
-bash ./pysetup.sh reqs     # *Install requirements
-bash ./pysetup.sh upgrade  # *Upgrade all modules
-bash ./pysetup.sh sshkey   # *Generate key pairs for SSH
-bash ./pysetup.sh getenv   # *Get environment variables
-bash ./pysetup.sh list     # *List installed modules
-veactivate                 # *Activate virtual environment
-deactivate                 # *Deactivate virtual environment
+bash .azure-pipelines/scripts/pysetup.sh venv     # *Setup python virtual environment
+bash .azure-pipelines/scripts/pysetup.sh delvenv  # *Delete python virtual environment
+bash .azure-pipelines/scripts/pysetup.sh reqs     # *Install requirements
+bash .azure-pipelines/scripts/pysetup.sh upgrade  # *Upgrade all modules
+bash .azure-pipelines/scripts/pysetup.sh sshkey   # *Generate key pairs for SSH
+bash .azure-pipelines/scripts/pysetup.sh getenv   # *Get environment variables
+bash .azure-pipelines/scripts/pysetup.sh list     # *List installed modules
+veactivate                                        # *Activate virtual environment
+deactivate                                        # *Deactivate virtual environment
 '
 
 # *Root directory of the application.

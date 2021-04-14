@@ -2,16 +2,16 @@
 .SYNOPSIS
 Setup Python virtual environment in the project and much more...
 .EXAMPLE
-.\pysetup.ps1 -Venv            # *Setup python virtual environment
-.\pysetup.ps1 -DelVenv         # *Delete python virtual environment
-.\pysetup.ps1 -Reqs            # *Install requirements
-.\pysetup.ps1 -Upgrade         # *Upgrade installed python modules
-.\pysetup.ps1 -SshKey          # *Generate key pairs for SSH
-.\pysetup.ps1 -SetEnv          # *Set environment variables
-.\pysetup.ps1 -GetEnv          # *Get environment variables
-.\pysetup.ps1 -List            # *List installed modules
-.\pysetup.ps1 -Activate        # *Activate virtual environment
-.\pysetup.ps1 -Deactivate      # *Deactivate virtual environment
+.azure-pipelines/scripts/pysetup.ps1 -Venv            # *Setup python virtual environment
+.azure-pipelines/scripts/pysetup.ps1 -DelVenv         # *Delete python virtual environment
+.azure-pipelines/scripts/pysetup.ps1 -Reqs            # *Install requirements
+.azure-pipelines/scripts/pysetup.ps1 -Upgrade         # *Upgrade installed python modules
+.azure-pipelines/scripts/pysetup.ps1 -SshKey          # *Generate key pairs for SSH
+.azure-pipelines/scripts/pysetup.ps1 -SetEnv          # *Set environment variables
+.azure-pipelines/scripts/pysetup.ps1 -GetEnv          # *Get environment variables
+.azure-pipelines/scripts/pysetup.ps1 -List            # *List installed modules
+.azure-pipelines/scripts/pysetup.ps1 -Activate        # *Activate virtual environment
+.azure-pipelines/scripts/pysetup.ps1 -Deactivate      # *Deactivate virtual environment
 #>
 
 param (
