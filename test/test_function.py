@@ -1,10 +1,11 @@
-""" Unit tests for function
+"""
+Unit tests for function HttpRequest.
+
 :Execution
     pytest test --doctest-modules --junitxml=junit/coverage.xml
 """
 
 import azure.functions as func
-
 import function
 
 
@@ -13,14 +14,11 @@ def test_output_contacts():
     """Test function."""
     # Construct a mock HTTP request.
     req = func.HttpRequest(
-        method='GET',
-        body=None,
-        url='/api/HttpTrigger',
-        params={'name': 'Test'}
+        method="GET", body=None, url="/api/HttpTrigger", params={"name": "Test"}
     )
 
     # Call the function.
     resp = function.main(req)
 
     # Check the output.
-    assert resp.get_body().decode() == 'Hello Test'
+    assert resp.get_body().decode() == "Hello Test"
