@@ -2,24 +2,30 @@
 .SYNOPSIS
 Setup Python virtual environment in the project and much more...
 .EXAMPLE
-.azure-pipelines/scripts/pysetup.ps1 -Venv            # *Setup python virtual environment
-.azure-pipelines/scripts/pysetup.ps1 -DelVenv         # *Delete python virtual environment
-.azure-pipelines/scripts/pysetup.ps1 -Reqs            # *Install requirements
-.azure-pipelines/scripts/pysetup.ps1 -Upgrade         # *Upgrade installed python modules
-.azure-pipelines/scripts/pysetup.ps1 -SshKey          # *Generate key pairs for SSH
-.azure-pipelines/scripts/pysetup.ps1 -SetEnv          # *Set environment variables
-.azure-pipelines/scripts/pysetup.ps1 -GetEnv          # *Get environment variables
-.azure-pipelines/scripts/pysetup.ps1 -List            # *List installed modules
-.azure-pipelines/scripts/pysetup.ps1 -Activate        # *Activate virtual environment
-.azure-pipelines/scripts/pysetup.ps1 -Deactivate      # *Deactivate virtual environment
+./pysetup.ps1 -Venv         # *Setup python virtual environment
+./pysetup.ps1 -DelVenv      # *Delete python virtual environment
+./pysetup.ps1 -CleanUp      # *Delete all cache folders
+./pysetup.ps1 -PurgeCache   # *Purge pip cache
+./pysetup.ps1 -Reqs         # *Install requirements
+./pysetup.ps1 -Upgrade      # *Upgrade installed python modules
+./pysetup.ps1 -SshKey       # *Generate key pairs for SSH
+./pysetup.ps1 -SslTrust     # *Trust SSL connection to pypi.org
+./pysetup.ps1 -SetEnv       # *Set environment variables
+./pysetup.ps1 -GetEnv       # *Get environment variables
+./pysetup.ps1 -List         # *List installed modules
+./pysetup.ps1 -Activate     # *Activate virtual environment
+./pysetup.ps1 -Deactivate   # *Deactivate virtual environment
 #>
 
 param (
     [switch]$Venv,
     [switch]$DelVenv,
+    [switch]$CleanUp,
+    [switch]$PurgeCache,
     [switch]$Reqs,
     [switch]$Upgrade,
     [switch]$SshKey,
+    [switch]$SslTrust,
     [switch]$SetEnv,
     [switch]$GetEnv,
     [switch]$List,
@@ -92,14 +98,11 @@ if ($Venv) {
             "`n" + 'if (Test-Path $activateScript) { & $activateScript }' + "`n")
         New-Item -Path $initScript -Value $initContent -Force | Out-Null
     }
-    if ($IsWindows) {
-        if (!(Test-Path 'C:\ProgramData\chocolatey\bin\func.exe')) {
-            "`e[95minstall Azure Functions Core Tools`e[0m"
-            choco install azure-functions-core-tools-3 --params "'/x64'" -y
-        }
-    } elseif ($IsLinux) {
-        if (!(Test-Path '/usr/bin/func')) {
-            "`e[95minstall Azure Functions Core Tools`e[0m"
+    if (!(Get-Command func)) {
+        "`e[95minstall Azure Functions Core Tools`e[0m"
+        if ($IsWindows) {
+            winget.exe install Microsoft.AzureFunctionsCoreTools
+        } elseif ($IsLinux) {
             curl 'https://packages.microsoft.com/keys/microsoft.asc' | gpg --dearmor > microsoft.gpg
             sudo mv microsoft.gpg '/etc/apt/trusted.gpg.d/microsoft.gpg'
             sudo sh -c 'echo "deb [arch=amd64] https://packages.microsoft.com/repos/microsoft-ubuntu-$(lsb_release -cs)-prod $(lsb_release -cs) main" > /etc/apt/sources.list.d/dotnetdev.list'
@@ -120,6 +123,26 @@ if ($DelVenv) {
     } else {
         "`e[96mVirtual environment not exists.`e[0m"
     }
+}
+
+# *Delete all cache folders
+if ($CleanUp) {
+    $dirs = Get-ChildItem -Directory -Exclude '.venv'
+    foreach ($d in $dirs) {
+        if ($d.Name -match '_cache$|__pycache__') {
+            Remove-Item $d -Recurse -Force
+        } else {
+            @('*_cache', '__pycache__') | ForEach-Object {
+                [IO.Directory]::GetDirectories($d.FullName, $_, 1) | `
+                    Remove-Item -Recurse -Force
+            }
+        }
+    }
+}
+
+# *Purge pip cache.
+if ($PurgeCache) {
+    pip cache purge
 }
 
 # *Upgrade pip, wheel and setuptools.
@@ -174,6 +197,18 @@ if ($SshKey) {
     }
 }
 
+# *Trust SSL connection to pypi.org.
+if ($SslTrust) {
+    if ($IsWindows) {
+        $pipLocation = "$env:APPDATA\pip\pip.ini"
+    } elseif ($IsLinux -or $IsMacOS) {
+        $pipLocation = "$env:HOME/.config/pip/pip.conf"
+    }
+    $pipConfDir = [IO.Path]::GetDirectoryName($pipLocation)
+    if (!(Test-Path $pipConfDir)) { New-Item $pipConfDir -ItemType Directory | Out-Null }
+    Set-Content $pipLocation -Value "[global]`ntrusted-host = pypi.org`n`tpypi.python.org`n`tfiles.pythonhosted.org"
+}
+
 # *Project environment variables.
 if ($SetEnv -or $GetEnv) {
     if (Test-Path $localSettings) {
@@ -203,7 +238,7 @@ if ($SetEnv -or $GetEnv) {
             foreach ($prop in $envVars.PSObject.Properties) {
                 [PSCustomObject]@{
                     Variable = $prop.Name;
-                    Value    = [Environment]::GetEnvironmentVariable($prop.Name)
+                    Value    = [Environment]::GetEnvironmentVariable($prop.Value)
                 }
             }
         }
