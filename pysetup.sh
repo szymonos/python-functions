@@ -17,7 +17,7 @@ deactivate             # *Deactivate virtual environment
 '
 
 # *Root directory of the application.
-APP_DIR='.'
+APP_DIR='app'
 
 # constants
 VENV_PATH=".venv"
