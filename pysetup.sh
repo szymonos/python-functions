@@ -1,44 +1,54 @@
 #!/bin/bash
 # *Setup Python environment in the project.
 : '
-bash .azure-pipelines/scripts/pysetup.sh venv     # *Setup python virtual environment
-bash .azure-pipelines/scripts/pysetup.sh delvenv  # *Delete python virtual environment
-bash .azure-pipelines/scripts/pysetup.sh reqs     # *Install requirements
-bash .azure-pipelines/scripts/pysetup.sh upgrade  # *Upgrade all modules
-bash .azure-pipelines/scripts/pysetup.sh sshkey   # *Generate key pairs for SSH
-bash .azure-pipelines/scripts/pysetup.sh getenv   # *Get environment variables
-bash .azure-pipelines/scripts/pysetup.sh list     # *List installed modules
-veactivate                                        # *Activate virtual environment
-deactivate                                        # *Deactivate virtual environment
+sudo chmod +x ./pysetup.sh
+./pysetup.sh venv      # *Setup python virtual environment
+./pysetup.sh delvenv   # *Delete python virtual environment
+./pysetup.sh cleanup   # *Delete all cache folders
+./pysetup.sh purge     # *Purge pip cache
+./pysetup.sh reqs      # *Install requirements
+./pysetup.sh upgrade   # *Upgrade all modules
+./pysetup.sh sshkey    # *Generate key pairs for SSH
+./pysetup.sh ssltrust  # *Trust SSL connection to pypi.org
+./pysetup.sh getenv    # *Get environment variables
+./pysetup.sh list      # *List installed modules
+source ./pysetup.sh    # *Activate virtual environment
+deactivate             # *Deactivate virtual environment
 '
 
 # *Root directory of the application.
-APP_DIR='app'
+APP_DIR='.'
 
 # constants
 VENV_PATH=".venv"
 
 # calculate script variables
-activateScript="$VENV_PATH/bin/activate"
-localSettings="$APP_DIR/local.settings.json"
-[ -f $activateScript ] && venvCreated=true || venvCreated=false
+activate_script="$VENV_PATH/bin/activate"
+local_settings="$APP_DIR/local.settings.json"
+[ -f $activate_script ] && venv_created=true || venv_created=false
 req_files=("requirements.txt")
 [ -n "$APP_DIR" ] && req_files=(${req_files[@]} "$APP_DIR/requirements.txt")
 
+# *Activate virtual environment.
+if [ "$1" = '' ] && $venv_created; then
+    source $activate_script
+    return
+fi
+
 # *Setup python virtual environment.
-if [ $1 = 'venv' ]; then
-    if $venvCreated; then
+if [ "$1" = 'venv' ]; then
+    if $venv_created; then
         printf "\033[96mVirtual environment already set.\033[0m\n"
     else
         printf "\033[96mSet up Python environment.\033[0m\n"
         python -m venv $VENV_PATH
-        source $activateScript
+        source $activate_script
     fi
 fi
 
 # *Delete python virtual environment.
-if [ $1 = 'delvenv' ]; then
-    if $venvCreated; then
+if [ "$1" = 'delvenv' ]; then
+    if $venv_created; then
         printf "\033[96mDelete virtual environment.\033[0m\n"
         rm -fr $VENV_PATH
     else
@@ -46,14 +56,24 @@ if [ $1 = 'delvenv' ]; then
     fi
 fi
 
+# *Delete all cache folders.
+if [ "$1" = 'cleanup' ]; then
+    rm -rf $(find -type d -name "*_*cache*")
+fi
+
+# *Purge pip cache.
+if [ "$1" = 'purge' ]; then
+    pip cache purge
+fi
+
 # *Upgrade pip, wheel and setuptools.
-if [ $1 = 'venv' ] || [ $1 = 'reqs' ] || [ $1 = 'upgrade' ]; then
+if [ "$1" = 'venv' ] || [ "$1" = 'reqs' ] || [ "$1" = 'upgrade' ]; then
     printf "\033[95mupgrade pip, wheel and setuptools\033[0m\n"
     python -m pip install -U pip wheel setuptools
 fi
 
 # *Install requirements.
-if [ $1 = 'venv' ] || [ $1 = 'reqs' ]; then
+if [ "$1" = 'venv' ] || [ "$1" = 'reqs' ]; then
     printf "\033[95minstall project requirements\033[0m\n"
     declare -a reqs
     for val in ${req_files[@]}; do
@@ -69,7 +89,7 @@ if [ $1 = 'venv' ] || [ $1 = 'reqs' ]; then
 fi
 
 # *Upgrade all modules.
-if [ $1 = 'upgrade' ]; then
+if [ "$1" = 'upgrade' ]; then
     mods=($(python -m pip freeze | grep -v '^\-e' | cut -d = -f 1))
     # save list of packages into temp reqs file
     reqs_temp='reqs_temp.txt'
@@ -79,7 +99,7 @@ if [ $1 = 'upgrade' ]; then
 fi
 
 # *Generate key pairs for SSH authentication in remote repository.
-if [ $1 = 'sshkey' ]; then
+if [ "$1" = 'sshkey' ]; then
     if ! [ -f '/root/.ssh/id_rsa.pub' ]; then
         # create new authentication key pairs for SSH if not exist
         ssh-keygen -b 2048 -t rsa -f ~/.ssh/id_rsa -q -N ''
@@ -88,14 +108,22 @@ if [ $1 = 'sshkey' ]; then
     cat '/root/.ssh/id_rsa.pub'
 fi
 
+# *Trust SSL connection to pypi.org.
+if [ "$1" = 'ssltrust' ]; then
+    conf="${HOME}/.config/pip/pip.conf"
+    [ ! -d "${conf%/*}" ] && mkdir -p "${conf%/*}"
+    # write pip configuration
+    printf "[global]\ntrusted-host = pypi.org\n\tpypi.python.org\n\tfiles.pythonhosted.org\n" >|$conf
+fi
+
 # *Get environment variables.
-if [ $1 = 'getenv' ]; then
-    keys=$(jq '.Values | keys | @sh' $localSettings | sed 's/"//g' | sed "s/'//g" | sed 's/ /|/g')
+if [ "$1" = 'getenv' ]; then
+    keys=$(jq '.Values | keys | @sh' $local_settings | sed 's/"//g' | sed "s/'//g" | sed 's/ /|/g')
     printenv | grep -E $keys | sort
 fi
 
 # *List installed modules.
-if [ $1 = 'list' ]; then
+if [ "$1" = 'list' ]; then
     python -m pip list
     modsCnt=$(python -m pip freeze | wc -l)
     pipPath=$(python -m pip -V | cut -d ' ' -f 4)
