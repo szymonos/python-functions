@@ -9,9 +9,24 @@
   ],
   // Set *default* container specific settings.json values on container create.
   "settings": {
-    "terminal.integrated.shell.linux": "/bin/bash",
+    "terminal.integrated.defaultProfile.linux": "bash",
+    "terminal.integrated.profiles.linux": {
+      "bash": {
+        "icon": "terminal-bash",
+        "path": "bash"
+      },
+      "pwsh": {
+        "args": [
+          "-Login",
+          "-NoLogo"
+        ],
+        "icon": "terminal-powershell",
+        "path": "pwsh"
+      },
+    },
     "workbench.colorTheme": "Default Dark+",
     "python.pythonPath": "/usr/local/bin/python",
+    "python.languageServer": "Pylance",
     "python.linting.enabled": true,
     "python.linting.pylintEnabled": true,
     "python.formatting.autopep8Path": "/usr/local/py-utils/bin/autopep8",
@@ -27,23 +42,23 @@
   // Add the IDs of extensions you want installed when the container is created.
   "extensions": [
     "aaron-bond.better-comments",
-    "coenraads.bracket-pair-colorizer-2",
     "eamodio.gitlens",
     "foxundermoon.shell-format",
     "hbenl.vscode-test-explorer",
     "kevinrose.vsc-python-indent",
     "mechatroner.rainbow-csv",
-    "mhutchie.git-graph",
     "ms-azuretools.vscode-azurefunctions",
     "ms-azuretools.vscode-docker",
     "ms-python.anaconda-extension-pack",
     "ms-python.python",
     "ms-python.vscode-pylance",
     "ms-toolsai.jupyter",
+    "ms-toolsai.jupyter-renderers",
     "ms-vscode.powershell",
+    "nhoizey.gremlins",
     "redhat.vscode-yaml",
     "shardulm94.trailing-spaces",
-    "tyriar.shell-launcher",
+    "usernamehw.errorlens",
     "visualstudioexptteam.vscodeintellicode"
   ],
   "remoteEnv": {

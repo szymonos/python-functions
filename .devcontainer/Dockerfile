@@ -1,6 +1,6 @@
 # Find the Dockerfile for mcr.microsoft.com/azure-functions/python:3.0-python3.8-core-tools at this URL
 # https://github.com/Azure/azure-functions-docker/blob/master/host/3.0/buster/amd64/python/python38/python38-core-tools.Dockerfile
-FROM mcr.microsoft.com/vscode/devcontainers/python:3.8
+FROM mcr.microsoft.com/vscode/devcontainers/python:3.9-buster
 
 # Avoid warnings by switching to noninteractive
 ENV DEBIAN_FRONTEND=noninteractive
@@ -24,7 +24,7 @@ RUN \
     # Install Microsoft ODBC driver for SQL Server
     # https://docs.microsoft.com/en-us/sql/connect/odbc/linux-mac/installing-the-microsoft-odbc-driver-for-sql-server
     && ACCEPT_EULA=Y apt-get install -y msodbcsql17 mssql-tools unixodbc-dev \
-    && apt-get install -y powershell neofetch \
+    && apt-get install -y powershell \
     #
     # Clean up
     && apt-get autoremove -y \
@@ -32,8 +32,6 @@ RUN \
     && rm -rf /var/lib/apt/lists/* \
     && mkdir -p /home/vscode/.local/share \
     && chown -R vscode /home/vscode
-    # Add sftp server to known hosts
-    # && ssh-keyscan -H download.webtrekk.com >> /etc/ssh/ssh_known_hosts
 
 # Azure Functions Core Tools needs a place to save data
 ENV XDG_DATA_HOME=/home/vscode/.local/share
@@ -41,7 +39,10 @@ ENV XDG_DATA_HOME=/home/vscode/.local/share
 # Install PowerShell modules
 SHELL ["/usr/bin/pwsh", "-c"]
 RUN $ErrorActionPreference='Stop'; \
-    Install-Module PSReadLine -Force -SkipPublisherCheck -AllowPrerelease;
+    Set-PSRepository -Name PSGallery -InstallationPolicy Trusted; \
+    Install-Module -Name PSReadLine -AllowPrerelease -Force; \
+    Install-Module -Name posh-git -Force; \
+    Enable-ExperimentalFeature PSAnsiRenderingFileInfo
 
 COPY src/profile.ps1 /root/.config/powershell/
 

@@ -1,3 +1,5 @@
+#!/usr/bin/pwsh -nop
+#Requires -Version 6.0
 <#
 .SYNOPSIS
 Setup Python virtual environment in the project and much more...
