@@ -1,5 +1,5 @@
 #!/usr/bin/pwsh -nop
-#Requires -Version 6.0
+#Requires -Version 7.0
 <#
 .SYNOPSIS
 Setup Python virtual environment in the project and much more...
@@ -55,8 +55,7 @@ $req = @{
     value = "black`nflake8`nipykernel`nnotebook`npydocstyle`npylint`npypath-magic`n"
 }
 $localSettings = [IO.Path]::Combine($APP_DIR, 'local.settings.json')
-$activeatePath = if ($IsWindows) { 'Scripts' } else { 'bin' }
-$activateScript = [IO.Path]::Combine($VENV_DIR, $activeatePath, 'Activate.ps1')
+$activateScript = [IO.Path]::Combine($VENV_DIR, ($IsWindows ? 'Scripts' : 'bin'), 'Activate.ps1')
 $venvCreated = Test-Path $activateScript
 $initScript = [IO.Path]::Combine('.vscode', 'init.ps1')
 
@@ -96,9 +95,15 @@ if ($Venv) {
     }
     if (!(Test-Path $initScript)) {
         "`e[95mcreate init.ps1 for virtual environment activation`e[0m"
-        $initContent = ('$activateScript = [IO.Path]::Combine(".venv", ($IsWindows ? "Scripts" : "bin"), "Activate.ps1")' +
-            "`n" + 'if (Test-Path $activateScript) { & $activateScript }' + "`n")
+        $initContent = (
+            "#!/usr/bin/pwsh -nop`n#Requires -Version 7.0" +
+            "`$activateScript = [IO.Path]::Combine('$VENV_DIR', (`$IsWindows ? 'Scripts' : 'bin'), 'Activate.ps1')`n" +
+            "if (Test-Path `$activateScript) {`n`t& `$activateScript`n}`n"
+        )
         New-Item -Path $initScript -Value $initContent -Force | Out-Null
+        if ($IsLinux) {
+            chmod +x $initScript
+        }
     }
     if (!(Get-Command func)) {
         "`e[95minstall Azure Functions Core Tools`e[0m"
@@ -251,7 +256,7 @@ if ($SetEnv -or $GetEnv) {
 
 # *List installed modules.
 if ($List) {
-    $modules = python -m pip list --format=json | ConvertFrom-Json; $modules
-    $pipPath = (python -m pip -V).Split(' from ')[1].Split('pip (')[0].TrimEnd('\', '/')
-    "`n`e[96m{0} `e[94m|`e[96m {1} modules installed in `e[94m'{2}'`e[0m" -f (python -V), $modules.Count, $pipPath
+    python -m pip list --format=json | ConvertFrom-Json | Tee-Object -Variable modules
+    $pipPath = (python -m pip -V) -replace ('^.*from |pip \(.*$', '')
+    "`n`e[96m$(python -V) `e[0m|`e[96m $($modules.Count) modules installed in `e[1;34m$pipPath`e[0m"
 }

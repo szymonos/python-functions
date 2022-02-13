@@ -1,72 +1,96 @@
 #!/usr/bin/pwsh -nop
-#Requires -Version 6.0
+#Requires -PSEdition Core
 <#
 .SYNOPSIS
-Script for creating and managing conda environments.
+Script for managing conda environments.
 .EXAMPLE
 ./conda.ps1     # *Create/update environment
 ./conda.ps1 -a  # *Activate environment
 ./conda.ps1 -d  # *Deactivate environment
-./conda.ps1 -r  # *Remove environment
-./conda.ps1 -c  # *Update conda
-./conda.ps1 -l  # *List environments
+./conda.ps1 -l  # *List packages
+./conda.ps1 -e  # *List environments
+./conda.ps1 -c  # *Clean conda
+./conda.ps1 -u  # *Update conda
+./conda.ps1 -r  # !Remove environment
 #>
 [CmdletBinding()]
 param (
     [Alias('a')][switch]$ActivateEnv,
     [Alias('d')][switch]$DeactivateEnv,
-    [Alias('r')][switch]$RemoveEnv,
-    [Alias('c')][switch]$CondaUpdate,
-    [Alias('l')][switch]$ListEnv
+    [Alias('l')][switch]$ListPackages,
+    [Alias('e')][switch]$ListEnv,
+    [Alias('c')][switch]$CondaClean,
+    [Alias('u')][switch]$CondaUpdate,
+    [Alias('r')][switch]$RemoveEnv
 )
 
 # const
 $ENV_FILE = 'conda.yaml'
 # calculate script variables
-$envName = (Select-String '^name:' $ENV_FILE -Raw).Split(':')[1].Trim()
-$envExists = $envName -in ((conda env list --json | ConvertFrom-Json).envs | Split-Path -Leaf)
+$envName = (Select-String '^name:' $ENV_FILE -Raw).Split(' ')[1]
+$isActivEnv = $null -ne $env:CONDA_DEFAULT_ENV -and -not $DeactivateEnv -and -not $RemoveEnv
+if (-not $MyInvocation.BoundParameters.Count -or $RemoveEnv) {
+    $envExists = $envName -in (conda env list | Select-String '^(?!#|:|/)\S+' | ForEach-Object { $_.Matches.Value })
+}
 
-if (-not $ListEnv) {
+# *Deactivate environment
+if (-not ($ListPackages -or $ListEnv)) {
     conda deactivate
 }
 
-# *Create/update environment
-if (-not ($RemoveEnv -or $ActivateEnv -or $DeactivateEnv -or $ListEnv -or $CondaUpdate)) {
-    if (-not $envExists) {
-        "`e[92mCreating `e[1m$envName`e[0;92m environment.`e[0m"
-        # create environment
-        conda env create --file $ENV_FILE --verbose
-    } else {
-        $msg = "`nEnvironment `e[1m$envName`e[0m already exists.`nDo you want to update (Y/N)?"
-        if ((Read-Host -Prompt $msg).ToLower() -eq 'y') {
-            # update packages in existing environment
-            conda env update --file $ENV_FILE --prune
-        } else {
-            'Done!'
-        }
+# *Check mamba installation
+if (-not $MyInvocation.BoundParameters.Count -or $CondaClean -or $CondaUpdate) {
+    $mamba = [IO.Path]::Join($Env:_CONDA_ROOT, 'bin', 'mamba')
+    if (-not (Test-Path $mamba)) {
+        'mamba not found, installing...'
+        conda install -n base -c conda-forge mamba
     }
 }
 
-# *Remove environment
-if ($RemoveEnv -and $envExists) {
-    # remove environment
-    conda env remove --name $envName
+# *Create/update environment
+if (-not $MyInvocation.BoundParameters.Count) {
+    if ($envExists) {
+        $msg = "`nEnvironment `e[1m$envName`e[0m already exists.`nProceed to update ([y]/n)?"
+        if ((Read-Host -Prompt $msg).ToLower() -in @('', 'y')) {
+            # update packages in existing environment
+            & $mamba env update --file $ENV_FILE --prune
+        } else {
+            'Done!'
+        }
+    } else {
+        "`e[92mCreating `e[1m$envName`e[0;92m environment.`e[0m"
+        # create environment
+        & $mamba env create --file $ENV_FILE
+    }
+}
+
+# *List packages
+if ($ListPackages) {
+    conda list
 }
 
 # *List environments
 if ($ListEnv) {
-    # list existing environments
     conda env list
+}
+
+# *Clean conda
+if ($CondaClean) {
+    & $mamba clean --all
 }
 
 # *Update conda
 if ($CondaUpdate) {
-    # update conda packages
-    conda update --name base conda
-    conda update --all
+    & $mamba update --name base conda
+    & $mamba update --all
+}
+
+# *Remove environment
+if ($RemoveEnv -and $envExists) {
+    conda env remove --name $envName
 }
 
 # *Activate environment
-if (-not ($RemoveEnv -or $DeactivateEnv -or $ListEnv)) {
+if (-not $MyInvocation.BoundParameters.Count -or $ActivateEnv -or $isActivEnv) {
     conda activate $envName
 }

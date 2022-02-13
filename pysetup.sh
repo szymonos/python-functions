@@ -38,9 +38,9 @@ fi
 # *Setup python virtual environment.
 if [ "$1" = 'venv' ]; then
     if $venv_created; then
-        printf "\033[96mVirtual environment already set.\033[0m\n"
+        printf "\e[96mVirtual environment already set.\e[0m\n"
     else
-        printf "\033[96mSet up Python environment.\033[0m\n"
+        printf "\e[96mSet up Python environment.\e[0m\n"
         python -m venv $VENV_PATH
         source $activate_script
     fi
@@ -49,10 +49,10 @@ fi
 # *Delete python virtual environment.
 if [ "$1" = 'delvenv' ]; then
     if $venv_created; then
-        printf "\033[96mDelete virtual environment.\033[0m\n"
+        printf "\e[96mDelete virtual environment.\e[0m\n"
         rm -fr $VENV_PATH
     else
-        printf "\033[96mVirtual environment not exists.\033[0m\n"
+        printf "\e[96mVirtual environment doesn't exist.\e[0m\n"
     fi
 fi
 
@@ -68,13 +68,13 @@ fi
 
 # *Upgrade pip, wheel and setuptools.
 if [ "$1" = 'venv' ] || [ "$1" = 'reqs' ] || [ "$1" = 'upgrade' ]; then
-    printf "\033[95mupgrade pip, wheel and setuptools\033[0m\n"
+    printf "\e[95mupgrade pip, wheel and setuptools\e[0m\n"
     python -m pip install -U pip wheel setuptools
 fi
 
 # *Install requirements.
 if [ "$1" = 'venv' ] || [ "$1" = 'reqs' ]; then
-    printf "\033[95minstall project requirements\033[0m\n"
+    printf "\e[95minstall project requirements\e[0m\n"
     declare -a reqs
     for val in ${req_files[@]}; do
         [ -f $val ] && reqs=(${reqs[@]} $(cat $val))
@@ -104,7 +104,7 @@ if [ "$1" = 'sshkey' ]; then
         # create new authentication key pairs for SSH if not exist
         ssh-keygen -b 2048 -t rsa -f ~/.ssh/id_rsa -q -N ''
     fi
-    printf "\033[96mAdd below key to the repository's SSH keys:\033[0m\n"
+    printf "\e[96mAdd below key to the repository's SSH keys:\e[0m\n"
     cat '/root/.ssh/id_rsa.pub'
 fi
 
@@ -126,6 +126,6 @@ fi
 if [ "$1" = 'list' ]; then
     python -m pip list
     modsCnt=$(python -m pip freeze | wc -l)
-    pipPath=$(python -m pip -V | cut -d ' ' -f 4)
-    printf "\n\033[96m$(python -V) \033[94m|\033[96m $modsCnt modules installed in \033[94m${pipPath/pip/}\033[0m\n\n"
+    pipPath=$(python -m pip -V | sed -e 's/^.*from \|pip (.*$//g')
+    printf "\n\e[96m$(python -V) \e[0m|\e[96m $modsCnt modules installed in \e[1;94m${pipPath}\e[0m\n\n"
 fi
