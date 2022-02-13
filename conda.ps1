@@ -1,5 +1,5 @@
 #!/usr/bin/pwsh -nop
-#Requires -PSEdition Core
+#Requires -Version 7.0
 <#
 .SYNOPSIS
 Script for managing conda environments.
@@ -40,7 +40,7 @@ if (-not ($ListPackages -or $ListEnv)) {
 
 # *Check mamba installation
 if (-not $MyInvocation.BoundParameters.Count -or $CondaClean -or $CondaUpdate) {
-    $mamba = [IO.Path]::Join($Env:_CONDA_ROOT, 'bin', 'mamba')
+    $mamba = [IO.Path]::Join($Env:_CONDA_ROOT, $IsWindows ? 'Scripts' : 'bin', "mamba$($IsWindows ? '.exe' : $null)")
     if (-not (Test-Path $mamba)) {
         'mamba not found, installing...'
         conda install -n base -c conda-forge mamba
