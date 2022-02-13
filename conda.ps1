@@ -1,4 +1,4 @@
-#!/usr/bin/pwsh -nop
+#!/usr/bin/pwsh
 #Requires -Version 7.0
 <#
 .SYNOPSIS
@@ -40,7 +40,7 @@ if (-not ($ListPackages -or $ListEnv)) {
 
 # *Check mamba installation
 if (-not $MyInvocation.BoundParameters.Count -or $CondaClean -or $CondaUpdate) {
-    $mamba = [IO.Path]::Join($Env:_CONDA_ROOT, $IsWindows ? 'Scripts' : 'bin', "mamba$($IsWindows ? '.exe' : $null)")
+    $mamba = $env:CONDA_EXE -replace ('\bconda', 'mamba')
     if (-not (Test-Path $mamba)) {
         'mamba not found, installing...'
         conda install -n base -c conda-forge mamba
