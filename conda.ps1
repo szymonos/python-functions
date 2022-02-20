@@ -29,8 +29,8 @@ $ENV_FILE = 'conda.yaml'
 # calculate script variables
 $envName = (Select-String '^name:' $ENV_FILE -Raw).Split(' ')[1]
 $isActivEnv = $null -ne $env:CONDA_DEFAULT_ENV -and -not $DeactivateEnv -and -not $RemoveEnv
-if (-not $MyInvocation.BoundParameters.Count -or $RemoveEnv) {
-    $envExists = $envName -in (conda env list | Select-String '^(?!#|:|/)\S+' | ForEach-Object { $_.Matches.Value })
+if (-not $PSBoundParameters.Count -or $RemoveEnv) {
+    $envExists = $envName -in (conda env list | Select-String '^(?!#|:|/)\S+').Matches.Value
 }
 
 # *Deactivate environment
@@ -39,7 +39,7 @@ if (-not ($ListPackages -or $ListEnv)) {
 }
 
 # *Check mamba installation
-if (-not $MyInvocation.BoundParameters.Count -or $CondaClean -or $CondaUpdate) {
+if (-not $PSBoundParameters.Count -or $CondaClean -or $CondaUpdate) {
     $mamba = $env:CONDA_EXE -replace ('\bconda', 'mamba')
     if (-not (Test-Path $mamba)) {
         'mamba not found, installing...'
@@ -48,7 +48,7 @@ if (-not $MyInvocation.BoundParameters.Count -or $CondaClean -or $CondaUpdate) {
 }
 
 # *Create/update environment
-if (-not $MyInvocation.BoundParameters.Count) {
+if (-not $PSBoundParameters.Count) {
     if ($envExists) {
         $msg = "`nEnvironment `e[1m$envName`e[0m already exists.`nProceed to update ([y]/n)?"
         if ((Read-Host -Prompt $msg).ToLower() -in @('', 'y')) {
@@ -91,6 +91,6 @@ if ($RemoveEnv -and $envExists) {
 }
 
 # *Activate environment
-if (-not $MyInvocation.BoundParameters.Count -or $ActivateEnv -or $isActivEnv) {
+if (-not $PSBoundParameters.Count -or $ActivateEnv -or $isActivEnv) {
     conda activate $envName
 }

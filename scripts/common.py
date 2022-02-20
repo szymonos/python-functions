@@ -21,7 +21,7 @@ def df_info(df: pd.DataFrame, clean: bool = False) -> pd.DataFrame:
         Whether to perform initial cleaning of DataFrame.
 
     Returns
-    ------
+    -------
     pandas.DataFrame
         Object with DataFrame analysis.
     """
