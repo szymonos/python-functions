@@ -30,7 +30,7 @@ $ENV_FILE = 'conda.yaml'
 $envName = (Select-String '^name:' $ENV_FILE).Line.Split(' ')[1]
 $isActivEnv = $null -ne $env:CONDA_DEFAULT_ENV -and -not $DeactivateEnv -and -not $RemoveEnv
 if (-not $PSBoundParameters.Count -or $RemoveEnv) {
-    $envExists = $envName -in (conda env list | Select-String '^(?!#|:|/)\S+').Matches.Value
+    $envExists = $envName -in (conda env list | Select-String '^(?!#)\S+').Matches.Value
 }
 
 # *Deactivate environment
