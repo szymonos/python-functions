@@ -1,5 +1,5 @@
 #!/usr/bin/pwsh
-#Requires -Version 7.0
+#Requires -PSEdition Core
 <#
 .SYNOPSIS
 Script for managing conda environments.
@@ -27,7 +27,7 @@ param (
 # const
 $ENV_FILE = 'conda.yaml'
 # calculate script variables
-$envName = (Select-String '^name:' $ENV_FILE -Raw).Split(' ')[1]
+$envName = (Select-String '^name:' $ENV_FILE).Line.Split(' ')[1]
 $isActivEnv = $null -ne $env:CONDA_DEFAULT_ENV -and -not $DeactivateEnv -and -not $RemoveEnv
 if (-not $PSBoundParameters.Count -or $RemoveEnv) {
     $envExists = $envName -in (conda env list | Select-String '^(?!#|:|/)\S+').Matches.Value
@@ -50,7 +50,7 @@ if (-not $PSBoundParameters.Count -or $CondaClean -or $CondaUpdate) {
 # *Create/update environment
 if (-not $PSBoundParameters.Count) {
     if ($envExists) {
-        $msg = "`nEnvironment `e[1m$envName`e[0m already exists.`nProceed to update ([y]/n)?"
+        $msg = "`nEnvironment `e[1;4m$envName`e[0m already exists.`nProceed to update ([y]/n)?"
         if ((Read-Host -Prompt $msg).ToLower() -in @('', 'y')) {
             # update packages in existing environment
             & $mamba env update --file $ENV_FILE --prune
@@ -58,7 +58,7 @@ if (-not $PSBoundParameters.Count) {
             'Done!'
         }
     } else {
-        "`e[92mCreating `e[1m$envName`e[0;92m environment.`e[0m"
+        "`e[92mCreating `e[1;4m$envName`e[0;92m environment.`e[0m"
         # create environment
         & $mamba env create --file $ENV_FILE
     }
