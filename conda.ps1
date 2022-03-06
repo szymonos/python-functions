@@ -27,7 +27,7 @@ param (
 # const
 $ENV_FILE = 'conda.yaml'
 # calculate script variables
-$envName = (Select-String '^name:' $ENV_FILE).Line.Split(' ')[1]
+$envName = (Select-String '^name:\s*(\w*$)' $ENV_FILE).Matches.Groups[1].Value
 $isActivEnv = $null -ne $env:CONDA_DEFAULT_ENV -and -not $DeactivateEnv -and -not $RemoveEnv
 if (-not $PSBoundParameters.Count -or $RemoveEnv) {
     $envExists = $envName -in (conda env list | Select-String '^(?!#)\S+').Matches.Value
