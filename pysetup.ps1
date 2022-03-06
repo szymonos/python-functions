@@ -124,7 +124,7 @@ if ($DelVenv) {
     if ($env:VIRTUAL_ENV) {
         deactivate
     }
-    if ($venvCreated) {
+    if (Test-Path $VENV_DIR) {
         Write-Host "`e[96mDelete virtual environment.`e[0m"
         Remove-Item $VENV_DIR -Recurse -Force
     } else {
