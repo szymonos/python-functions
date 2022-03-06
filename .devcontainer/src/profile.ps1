@@ -1,17 +1,30 @@
 #Requires -Version 7.2
-#Requires -Modules @{ ModuleName="PSReadLine"; RequiredVersion="2.2.1" }, posh-git
+#Requires -Modules PSReadLine, posh-git
+<#
+.SYNOPSIS
+My PowerShell profile.
+.LINK
+https://github.com/PowerShell/PSReadLine
+https://devblogs.microsoft.com/powershell/optimizing-your-profile/
+.EXAMPLE
+code -r $Profile.CurrentUserAllHosts
+code -r (Get-PSReadlineOption).HistorySavePath
+Copy-Item "$SWD/.configs/powershell/profile.ps1" -Destination $Profile.CurrentUserAllHosts -Force
+#>
 
-# *StartUp settings.
-# import modules
+#region startup settings
+# set culture to English Sweden for ISO-8601 datetime settings
+[Threading.Thread]::CurrentThread.CurrentCulture = 'en-SE'
+<# Import posh-git module for git autocompletion. Install module:
+Install-Module posh-git #>
 Import-Module posh-git; $GitPromptSettings.EnablePromptStatus = $false
 # make PowerShell console Unicode (UTF-8) aware
 $OutputEncoding = [Console]::InputEncoding = [Console]::OutputEncoding = [Text.UTF8Encoding]::new()
-# set culture to English Sweden for ISO-8601 datetime settings
-[Threading.Thread]::CurrentThread.CurrentCulture = 'en-SE'
 <# Change PSStyle for directory coloring. Enable coloring:
 Enable-ExperimentalFeature PSAnsiRenderingFileInfo #>
 $PSStyle.FileInfo.Directory = "$($PSStyle.Bold)$($PSStyle.Foreground.Blue)"
-# configure PSReadLine
+<# Configure PSReadLine setting. Install module:
+Install-Module PSReadLine -AllowPrerelease -Force #>
 Set-PSReadLineOption -EditMode Emacs
 Set-PSReadLineOption -PredictionSource History -PredictionViewStyle ListView
 Set-PSReadLineKeyHandler -Chord Tab -Function MenuComplete
@@ -21,9 +34,9 @@ Set-PSReadLineKeyHandler -Chord Alt+j -Function NextHistory
 Set-PSReadLineKeyHandler -Chord Alt+k -Function PreviousHistory
 # set Startup Working Directory variable
 $SWD = $PWD.Path
+#endregion
 
-# *Aliases and functions.
-Set-Alias -Name _ -Value sudo
+#region functions
 # navigation functions
 function cds { Set-Location $SWD }
 function .. { Set-Location .. }
@@ -31,26 +44,14 @@ function ... { Set-Location ../.. }
 function .... { Set-Location ../../.. }
 function ..... { Set-Location ../../../.. }
 
-# list directory contents
-function l { ls -1 --color=auto --time-style=long-iso --group-directories-first $args }
-function la { ls -lAh --color=auto --time-style=long-iso --group-directories-first $args }
-function lsa { ls -lah --color=auto --time-style=long-iso --group-directories-first $args }
-
-function ll { Get-ChildItem -Force $args }
+function ll { Invoke-Expression "Get-ChildItem $args -Force" }
 
 function src { . $PROFILE.CurrentUserAllHosts }
 
-function Get-CmdletAlias ($cmdletname) {
+function Format-Duration ([timespan]$TimeSpan) {
     <#
     .SYNOPSIS
-    Gets the aliases for any cmdlet.#>
-    Get-Alias | `
-        Where-Object -FilterScript { $_.Definition -match $cmdletname } | `
-        Sort-Object -Property Definition, Name | `
-        Select-Object -Property Definition, Name
-}
-
-function Format-Duration ([timespan]$TimeSpan) {
+    Print timespan in human readable format.#>
     switch ($TimeSpan) {
         { $_.TotalMilliseconds -gt 0 -and $_.TotalMilliseconds -lt 10 } { '{0:N2}ms' -f $_.TotalMilliseconds }
         { $_.TotalMilliseconds -ge 10 -and $_.TotalMilliseconds -lt 100 } { '{0:N1}ms' -f $_.TotalMilliseconds }
@@ -64,19 +65,46 @@ function Format-Duration ([timespan]$TimeSpan) {
     }
 }
 
-# *Prompt.
+function Get-CmdletAlias ([string]$cmdletname) {
+    <#
+    .SYNOPSIS
+    Get the aliases for any cmdlet.#>
+    Get-Alias | `
+        Where-Object -FilterScript { $_.Definition -match $cmdletname } | `
+        Sort-Object -Property Definition, Name | `
+        Select-Object -Property Definition, Name
+}
+
+# functions
+function Invoke-Sudo { & /usr/bin/env sudo pwsh -NoProfile -Command "& $args" }
+function grep { $input | & /usr/bin/env grep --color=auto $args }
+function ls { & /usr/bin/env ls --color=auto --time-style=long-iso --group-directories-first $args }
+function l { ls -1 }
+function la { ls -lAh }
+function lsa { ls -lah }
+
+#region aliases
+Set-Alias -Name gim -Value Get-InstalledModule
+Set-Alias -Name ga -Value Get-Alias
+Set-Alias -Name gca -Value Get-CmdletAlias
+Set-Alias _ Invoke-Sudo
+#endregion
+
+#region prompt
 function Prompt {
     $execStatus = $?
     # get execution time of the last command
     $executionTime = (Get-History).Count -gt 0 ? (Format-Duration(Get-History)[-1].Duration) : $null
     # get prompt path
-    $promptPath = $PWD.Path.Replace($HOME, '~').Replace('Microsoft.PowerShell.Core\FileSystem::', '') -replace '\\$', ''
+    $promptPath = $PWD.Path.Replace($HOME, '~').Replace('Microsoft.PowerShell.Core\FileSystem::', '') -replace '\\$'
     $split = $promptPath.Split([IO.Path]::DirectorySeparatorChar)
     if ($split.Count -gt 3) {
         $promptPath = [IO.Path]::Join((($split[0] -eq '~') ? '~' : ($IsWindows ? "$($PWD.Drive.Name):" : $split[1])), '..', $split[-1])
     }
     # write last execution time
-    if ($executionTime) { [Console]::Write("[$($PSStyle.Foreground.BrightYellow)$executionTime$($PSStyle.Reset)] ") }
+    if ($executionTime) {
+        [Console]::Write("[$($PSStyle.Foreground.BrightYellow)$executionTime$($PSStyle.Reset)] ")
+    }
     # write last execution status
     [Console]::Write("$($PSStyle.Bold){0}`u{2192} ", $execStatus ? $PSStyle.Foreground.BrightGreen : $PSStyle.Foreground.BrightRed)
     # write prompt path
@@ -84,7 +112,8 @@ function Prompt {
     # write git branch/status
     try {
         # get git status
-        if ($gstatus = @(git status -b --porcelain=v2 2>$null)[1..4]) {
+        $gstatus = @(git status -b --porcelain=v2 2>$null)[1..4]
+        if ($gstatus) {
             # get branch name and upstream status
             $branch = $gstatus[0].Split(' ')[2] + ($gstatus[1] -match 'branch.upstream' ? $null : " `u{21E1}")
             # format branch name color depending on working tree status
@@ -93,8 +122,10 @@ function Prompt {
     } catch {}
     return '{0}{1} ' -f ($PSStyle.Reset, '>' * ($nestedPromptLevel + 1))
 }
+#endregion
 
-# *Display startup information.
+#region startup information
 "$($PSStyle.Foreground.BrightCyan)BootUp: $((Get-Uptime -Since).ToString('u')) | Uptime: $(Get-Uptime)$($PSStyle.Reset)"
 "$($PSStyle.Foreground.BrightWhite){0} | PowerShell $($PSVersionTable.PSVersion)$($PSStyle.Reset)" `
-    -f (Select-String '^PRETTY_NAME=' /etc/os-release -Raw).Split('=')[1] -replace ("['`"]")
+    -f (Select-String '^PRETTY_NAME=(.*)' /etc/os-release).Matches.Groups[1].Value.Trim("`"|'")
+#endregion
