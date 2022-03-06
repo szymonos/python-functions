@@ -7,34 +7,45 @@ is also configured for deploy in a container.
 
 ## Repository layout
 
+``` text
+.
+├── .azure-pipelines                # Azure DevOps pipeline definition directory
+│   └── ...
+├── .devcontainer                   # remote-containers configuration files directory
+│   └── ...
+├── app                             # azure function code which will be deployed
+│   ├── configuration               # Python App Configuration handling implementation
+│   │   ├── __init__.py
+│   │   ├── appconfiguration.py     # retrieving appcf settings including key-vault referenced secrets
+│   │   └── config.py               # classes for specific appcf settings
+│   ├── function                    # sample Azure Function
+│   │   └── ...
+│   ├── health                      # health check function used by Azure Function App
+│   │   └── ...
+│   ├── modules                     # shared app modules
+│   │   ├── __init__.py
+│   │   ├── database.py             # MS SQL database handling using pandas
+│   │   └── datalake.py             # Azure DataLake blob storage handling
+│   ├── Dockerfile                  # application container dockerfile
+│   ├── ...
+│   └── requirements.txt            # application requirements
+├── scripts                         # development scripts
+│   └── ...
+├── terraform                       # terraform template for provisioning Azure Function App
+│   └── ...
+├── test                            # unit tests folder
+│   └── ...
+├── .dockerignore                   # dockerignore of application container
+├── .gitattributes                  # project specific git settings
+├── .gitignore                      # python gitignore
+├── conda.ps1                       # PowerShell script for creating conda environment
+├── conda.yaml                      # conda environment definition
+├── docker-compose.debug.yml        # development docker compose for debugging and testing
+├── docker-compose.yml              # docker compose used in pipeline for building container image
+├── LICENSE                         # project license
+├── pylintrc                        # pylint configuration file
+├── pysetup.ps1                     # PowerShell script for setting python venv environment
+├── pysetup.sh                      # bash script for setting python venv environment
+├── README.md                       # this file
+└── requirements.txt                # development requirements
 ```
-.devcontainer               # remote-containers configuration files
- | - Dockerfile
- | - devcontainer.json
-app                         # azure function code which will be deployed
- | - function
- | | - function.json
- | | - __init__.py
- | - modules
- | | - __init__.py
- | | - ...
- | - Dockerfile             # application container dockerfile
- | - host.json
- | - requirements.txt       # application requirements
-scripts                     # development scripts
- | - __init__.py
- | - ...
-test                        # unit tests folder
- | - __init__.py
- | - test_function.py
-.dockerignore               # dockerignore of application container
-.gitattributes              # python gitignore
-.gitignore                  # project specific git settings
-LICENCSE                    # project license
-pylintrc                    # pylint configuration file
-README.md                   # this file
-pysetup.ps1                 # powershell script for setting python environment
-pysetup.sh                  # bash script for setting python environment
-requirements.txt            # development requirements
-docker-compose.debug.yml    # application docker-compose file for development
-docker-compose.yml          # application docker-compose file
