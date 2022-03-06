@@ -44,7 +44,10 @@ function ... { Set-Location ../.. }
 function .... { Set-Location ../../.. }
 function ..... { Set-Location ../../../.. }
 
-function ll { Invoke-Expression "Get-ChildItem $args -Force" }
+function ll {
+    $arguments = $args.ForEach({ $_ -match ' ' ? "'$_'" : $_ })
+    Invoke-Expression "Get-ChildItem $arguments -Force"
+}
 
 function src { . $PROFILE.CurrentUserAllHosts }
 
