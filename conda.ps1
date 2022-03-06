@@ -10,7 +10,7 @@ Script for managing conda environments.
 ./conda.ps1 -l  # *List packages
 ./conda.ps1 -e  # *List environments
 ./conda.ps1 -c  # *Clean conda
-./conda.ps1 -u  # *Update conda
+./conda.ps1 -u  # *Update conda base
 ./conda.ps1 -r  # !Remove environment
 #>
 [CmdletBinding()]
@@ -42,8 +42,8 @@ if (-not ($ListPackages -or $ListEnv)) {
 if (-not $PSBoundParameters.Count -or $CondaClean -or $CondaUpdate) {
     $mamba = $env:CONDA_EXE -replace ('\bconda', 'mamba')
     if (-not (Test-Path $mamba)) {
-        'mamba not found, installing...'
-        conda install -n base -c conda-forge mamba
+        Write-Host 'mamba not found, installing...'
+        conda install --name base --channel conda-forge mamba
     }
 }
 
@@ -55,10 +55,10 @@ if (-not $PSBoundParameters.Count) {
             # update packages in existing environment
             & $mamba env update --file $ENV_FILE --prune
         } else {
-            'Done!'
+            Write-Host 'Done!'
         }
     } else {
-        "`e[92mCreating `e[1;4m$envName`e[0;92m environment.`e[0m"
+        Write-Host "`e[92mCreating `e[1;4m$envName`e[0;92m environment.`e[0m"
         # create environment
         & $mamba env create --file $ENV_FILE
     }
@@ -81,8 +81,7 @@ if ($CondaClean) {
 
 # *Update conda
 if ($CondaUpdate) {
-    & $mamba update --name base conda
-    & $mamba update --all
+    & $mamba update --name base --channel conda-forge --update-all
 }
 
 # *Remove environment
