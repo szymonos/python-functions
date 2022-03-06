@@ -96,7 +96,7 @@ if ($Venv) {
     if (!(Test-Path $initScript)) {
         Write-Host "`e[95mcreate `e[1;3minit.ps1`e[22;23m for virtual environment activation`e[0m"
         $initContent = (
-            "#!/usr/bin/pwsh -nop`n#Requires -Version 7.0" +
+            "#!/usr/bin/pwsh -nop`n#Requires -Version 7.0`n" +
             "`$activateScript = [IO.Path]::Combine('$VENV_DIR', (`$IsWindows ? 'Scripts' : 'bin'), 'Activate.ps1')`n" +
             "if (Test-Path `$activateScript) {`n`t& `$activateScript`n}`n"
         )
