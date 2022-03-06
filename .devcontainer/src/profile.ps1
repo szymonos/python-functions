@@ -127,5 +127,5 @@ function Prompt {
 #region startup information
 "$($PSStyle.Foreground.BrightCyan)BootUp: $((Get-Uptime -Since).ToString('u')) | Uptime: $(Get-Uptime)$($PSStyle.Reset)"
 "$($PSStyle.Foreground.BrightWhite){0} | PowerShell $($PSVersionTable.PSVersion)$($PSStyle.Reset)" `
-    -f (Select-String '^PRETTY_NAME=(.*)' /etc/os-release).Matches.Groups[1].Value.Trim("`"|'")
+    -f (Select-String -Pattern '^PRETTY_NAME=(.*)' -Path /etc/os-release).Matches.Groups[1].Value.Trim("`"|'")
 #endregion
