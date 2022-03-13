@@ -1,30 +1,16 @@
 #Requires -Version 7.2
 #Requires -Modules PSReadLine, posh-git
-<#
-.SYNOPSIS
-My PowerShell profile.
-.LINK
-https://github.com/PowerShell/PSReadLine
-https://devblogs.microsoft.com/powershell/optimizing-your-profile/
-.EXAMPLE
-code -r $Profile.CurrentUserAllHosts
-code -r (Get-PSReadlineOption).HistorySavePath
-Copy-Item "$SWD/.configs/powershell/profile.ps1" -Destination $Profile.CurrentUserAllHosts -Force
-#>
 
 #region startup settings
-# set culture to English Sweden for ISO-8601 datetime settings
-[Threading.Thread]::CurrentThread.CurrentCulture = 'en-SE'
-<# Import posh-git module for git autocompletion. Install module:
-Install-Module posh-git #>
+# Import posh-git module for git autocompletion
 Import-Module posh-git; $GitPromptSettings.EnablePromptStatus = $false
 # make PowerShell console Unicode (UTF-8) aware
 $OutputEncoding = [Console]::InputEncoding = [Console]::OutputEncoding = [Text.UTF8Encoding]::new()
-<# Change PSStyle for directory coloring. Enable coloring:
-Enable-ExperimentalFeature PSAnsiRenderingFileInfo #>
+# set culture to English Sweden for ISO-8601 datetime settings
+[Threading.Thread]::CurrentThread.CurrentCulture = 'en-SE'
+# change PSStyle for directory coloring
 $PSStyle.FileInfo.Directory = "$($PSStyle.Bold)$($PSStyle.Foreground.Blue)"
-<# Configure PSReadLine setting. Install module:
-Install-Module PSReadLine -AllowPrerelease -Force #>
+# configure PSReadLine setting
 Set-PSReadLineOption -EditMode Emacs
 Set-PSReadLineOption -PredictionSource History -PredictionViewStyle ListView
 Set-PSReadLineKeyHandler -Chord Tab -Function MenuComplete
@@ -85,9 +71,9 @@ function ls { & /usr/bin/env ls --color=auto --time-style=long-iso --group-direc
 function l { ls -1 }
 function la { ls -lAh }
 function lsa { ls -lah }
+#endregion
 
 #region aliases
-Set-Alias -Name gim -Value Get-InstalledModule
 Set-Alias -Name ga -Value Get-Alias
 Set-Alias -Name gca -Value Get-CmdletAlias
 Set-Alias _ Invoke-Sudo

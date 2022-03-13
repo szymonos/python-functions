@@ -37,12 +37,11 @@ RUN \
 ENV XDG_DATA_HOME=/home/vscode/.local/share
 
 # Install PowerShell modules
-SHELL ["/usr/bin/pwsh", "-c"]
-RUN $ErrorActionPreference='Stop'; \
-    Set-PSRepository -Name PSGallery -InstallationPolicy Trusted; \
-    Install-Module -Name PSReadLine -AllowPrerelease -Force; \
-    Install-Module -Name posh-git -Force; \
-    Enable-ExperimentalFeature PSAnsiRenderingFileInfo
+RUN pwsh -c \
+    "Set-PSRepository -Name PSGallery -InstallationPolicy Trusted && \
+    Install-Module -Name PSReadLine -Force && \
+    Install-Module -Name posh-git && \
+    Enable-ExperimentalFeature PSAnsiRenderingFileInfo"
 
 COPY src/profile.ps1 /root/.config/powershell/
 
