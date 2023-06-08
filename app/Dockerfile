@@ -7,7 +7,7 @@ ENV AzureWebJobsScriptRoot=/home/site/wwwroot \
     PYTHONPATH=${PYTHONPATH}:/home/site/wwwroot
 
 # copy sshd_config for vscode remote connection
-# COPY .devcontainer/src/sshd_config /etc/ssh/
+# COPY .devcontainer/config/sshd/sshd_config /etc/ssh/
 
 WORKDIR /home/site/wwwroot
 

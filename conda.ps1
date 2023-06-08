@@ -1,95 +1,176 @@
-#!/usr/bin/pwsh
+#!/usr/bin/env pwsh
 #Requires -PSEdition Core
 <#
 .SYNOPSIS
 Script for managing conda environments.
+.PARAMETER Option
+Select script action.
+.PARAMETER CondaFile
+Specify path to conda file to be used for creating environment.
+
 .EXAMPLE
-./conda.ps1     # *Create/update environment
-./conda.ps1 -a  # *Activate environment
-./conda.ps1 -d  # *Deactivate environment
-./conda.ps1 -l  # *List packages
-./conda.ps1 -e  # *List environments
-./conda.ps1 -c  # *Clean conda
-./conda.ps1 -u  # *Update conda base
-./conda.ps1 -r  # !Remove environment
+./conda.ps1                           # *Displays help page
+./conda.ps1 setup                     # *Create/update environment
+./conda.ps1 activate                  # *Activate environment
+./conda.ps1 deactivate                # *Deactivate environment
+./conda.ps1 list                      # *List packages
+./conda.ps1 envs                      # *List environments
+./conda.ps1 update                    # *Update conda
+./conda.ps1 clean                     # *Clean conda
+./conda.ps1 remove                    # !Remove environment
+
+$CondaFile = '.tmp/env.yml'
+./conda.ps1 -f $CondaFile             # *Create/update environment
+./conda.ps1 -f $CondaFile -o activate # *Activate environment
+./conda.ps1 -f $CondaFile -o remove   # !Remove environment
 #>
 [CmdletBinding()]
 param (
-    [Alias('a')][switch]$ActivateEnv,
-    [Alias('d')][switch]$DeactivateEnv,
-    [Alias('l')][switch]$ListPackages,
-    [Alias('e')][switch]$ListEnv,
-    [Alias('c')][switch]$CondaClean,
-    [Alias('u')][switch]$CondaUpdate,
-    [Alias('r')][switch]$RemoveEnv
+    [Parameter(Position = 0)]
+    [string]$Option,
+
+    [Alias('f')]
+    [ValidateNotNullorEmpty()]
+    [string]$CondaFile = 'conda.yaml'
 )
 
-# const
-$ENV_FILE = 'conda.yaml'
-# calculate script variables
-$envName = (Select-String -Pattern '^name: +(\S+)' -Path $ENV_FILE).Matches.Groups[1].Value
-$isActivEnv = $null -ne $env:CONDA_DEFAULT_ENV -and -not $DeactivateEnv -and -not $RemoveEnv
-if (-not $PSBoundParameters.Count -or $RemoveEnv) {
-    $envExists = [bool](conda env list | Select-String "^$envName\b")
-}
+dynamicparam {
+    if (@('activate', 'remove') -match "^$Option" -and -not $PSBoundParameters.CondaFile) {
+        $parameterAttribute = [Management.Automation.ParameterAttribute]@{ Position = 1 }
 
-# *Deactivate environment
-if (-not ($ListPackages -or $ListEnv)) {
-    conda deactivate
-}
+        $attributeCollection = [System.Collections.ObjectModel.Collection[System.Attribute]]::new()
+        $attributeCollection.Add($parameterAttribute)
 
-# *Check mamba installation
-if (-not $PSBoundParameters.Count -or $CondaClean -or $CondaUpdate) {
-    $mamba = $env:CONDA_EXE -replace ('\bconda', 'mamba')
-    if (-not (Test-Path $mamba)) {
-        Write-Host 'mamba not found, installing...'
-        conda install --name base --channel conda-forge mamba
+        $dynParam = [System.Management.Automation.RuntimeDefinedParameter]::new(
+            'Environment', [string], $attributeCollection
+        )
+
+        $paramDict = [System.Management.Automation.RuntimeDefinedParameterDictionary]::new()
+        $paramDict.Add('Environment', $dynParam)
+        return $paramDict
     }
 }
 
-# *Create/update environment
-if (-not $PSBoundParameters.Count) {
-    if ($envExists) {
-        $msg = "`nEnvironment `e[1;4m$envName`e[0m already exists.`nProceed to update ([y]/n)?"
-        if ((Read-Host -Prompt $msg).ToLower() -in @('', 'y')) {
-            # update packages in existing environment
-            & $mamba env update --file $ENV_FILE --prune
+begin {
+    if (-not $Option) {
+        [Console]::WriteLine(
+            [string]::Join("`n",
+                "Script for managing conda environments.`n",
+                "usage: conda.ps1 [-Option] <string> [[-Environment] <string>] [-CondaFile <string>]`n",
+                'The following options are available:',
+                "  `e[1;97mactivate`e[0m    Activate environment",
+                "  `e[1;97mclean`e[0m       Clean conda environment",
+                "  `e[1;97mdeactivate`e[0m  Deactivate environment",
+                "  `e[1;97menvs`e[0m        List environments",
+                "  `e[1;97mlist`e[0m        List packages",
+                "  `e[1;97mremove`e[0m      Remove environment",
+                "  `e[1;97msetup`e[0m       Create/update environment",
+                "  `e[1;97mupdate`e[0m      Update conda`n"
+            )
+        )
+        return
+    }
+    # evaluate Option parameter abbreviations
+    $optSet = @('activate', 'clean', 'deactivate', 'envs', 'list', 'remove', 'setup', 'update')
+    $opt = $optSet -match "^$Option"
+    if ($opt.Count -eq 0) {
+        Write-Warning "Option parameter name '$Option' is invalid. Valid Option values are:`n`t $($optSet -join ', ')"
+        break
+    } elseif ($opt.Count -gt 1) {
+        Write-Warning "Option parameter name '$Option' is ambiguous. Possible matches include: $($opt -join ', ')."
+        break
+    }
+
+    # check for conda file
+    if ($opt -in @('activate', 'remove', 'setup')) {
+        if ($PSBoundParameters.Environment) {
+            $envName = $PSBoundParameters.Environment
+            $envExists = $true
+        } elseif (Test-Path $CondaFile) {
+            # get environment name
+            $envName = (Select-String -Pattern '^name: +(\S+)' -Path $CondaFile).Matches.Groups.Where({ $_.Name -eq '1' }).Value
+            $envExists = $envName -in (Get-CondaEnvironment).Name
         } else {
-            Write-Host 'Done!'
+            Write-Warning "File `e[4m$CondaFile`e[24m not found"
+            break
         }
-    } else {
-        Write-Host "`e[92mCreating `e[1;4m$envName`e[0;92m environment.`e[0m"
-        # create environment
-        & $mamba env create --file $ENV_FILE
+        if ($envName) {
+            # exit environment before proceeding
+            Exit-CondaEnvironment
+        }
     }
 }
 
-# *List packages
-if ($ListPackages) {
-    conda list
-}
+# *Execute option
+process {
+    switch ($opt) {
+        activate {
+            # *Activate environment
+            if ($envExists) {
+                Enter-CondaEnvironment $envName
+            } else {
+                Write-Host "`e[1;4m$envName`e[22;24m environment doesn't exist!"
+            }
+            break
+        }
 
-# *List environments
-if ($ListEnv) {
-    conda env list
-}
+        clean {
+            # *Clean conda
+            Invoke-Conda clean -y --all
+            break
+        }
 
-# *Clean conda
-if ($CondaClean) {
-    & $mamba clean --all
-}
+        deactivate {
+            # *Clean conda
+            Exit-CondaEnvironment
+            break
+        }
 
-# *Update conda
-if ($CondaUpdate) {
-    & $mamba update --name base --channel conda-forge --update-all
-}
+        envs {
+            # *List environments
+            Invoke-Conda env list
+            break
+        }
 
-# *Remove environment
-if ($RemoveEnv -and $envExists) {
-    conda env remove --name $envName
-}
+        list {
+            # *List packages
+            Invoke-Conda list
+            break
+        }
 
-# *Activate environment
-if (-not $PSBoundParameters.Count -or $ActivateEnv -or $isActivEnv) {
-    conda activate $envName
+        remove {
+            # *Remove environment
+            if ($envName -eq 'base') {
+                Write-Host "Cannot remove `e[1;4mbase`e[22;24m environment!"
+            } elseif ($envExists) {
+                Write-Host "Removing `e[1;4m$envName`e[22;24m environment."
+                Invoke-Conda env remove --name $envName
+            } else {
+                Write-Host "`e[1;4m$envName`e[22;24m environment doesn't exist!"
+            }
+            break
+        }
+
+        setup {
+            if ($envExists) {
+                # *Create environment
+                Write-Host "`nEnvironment `e[1;4m$envName`e[22;24m already exist. Updating..."
+                Invoke-Conda env update --file $CondaFile --prune
+                Enter-CondaEnvironment $envName
+            } else {
+                # *Update environment
+                Write-Host "Creating `e[1;4m$envName`e[22;24m environment."
+                Invoke-Conda env create --file $CondaFile
+                Enter-CondaEnvironment $envName
+            }
+            break
+        }
+
+        update {
+            # *Update conda
+            Invoke-Conda update -y --name base --channel pkgs/main --update-all
+            break
+        }
+
+    }
 }

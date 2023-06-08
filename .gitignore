@@ -1,5 +1,7 @@
-# Temporary files
-\!*.*
+# ignored folders
+/.tmp/
+/.private/
+/console/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
