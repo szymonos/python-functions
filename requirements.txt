@@ -1,7 +1,6 @@
 black
 flake8
 ipykernel
-mypy
 notebook
 pydocstyle
 pytest

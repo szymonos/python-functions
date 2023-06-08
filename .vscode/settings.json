@@ -1,12 +1,37 @@
 {
+  "[powershell]": {
+    "editor.defaultFormatter": "ms-vscode.powershell",
+    "editor.semanticHighlighting.enabled": true,
+    "editor.rulers": [
+      120
+    ],
+    "editor.tabSize": 4
+  },
+  "[python]": {
+    "editor.codeActionsOnSave": {
+      "source.organizeImports": true
+    },
+    "editor.defaultFormatter": "ms-python.black-formatter",
+    "editor.formatOnPaste": false,
+    "editor.formatOnSave": true,
+    "editor.formatOnSaveMode": "file",
+    "editor.rulers": [
+      79,
+      100
+    ],
+    "editor.tabSize": 4,
+    "editor.formatOnType": true
+  },
   "azureFunctions.deploySubpath": "app",
   "azureFunctions.projectLanguage": "Python",
   "azureFunctions.projectRuntime": "~3",
   "azureFunctions.scmDoBuildDuringDeployment": true,
+  "black-formatter.args": [
+    "--line-length=100"
+  ],
   "debug.internalConsoleOptions": "neverOpen",
   "editor.semanticTokenColorCustomizations": {
-    "[Default Dark+]": {
-      "enabled": true,
+    "[Default Dark Modern]": {
       "rules": {
         "*.declaration": {
           "bold": true
@@ -15,15 +40,15 @@
         "module:python": {
           "underline": true
         },
-        "operator": "#C586C0",
-        "parameter": "#D4D4D4",
-        "property": "#D4D4D4",
-        "selfParameter:python": "#569CD6"
+        "parameter:powershell": "#569cd6",
+        "property:powershell": "#d4d4d4",
+        "property:python": "#d4d4d4",
+        "selfParameter:python": "#569cd6"
       }
     }
   },
   "editor.tokenColorCustomizations": {
-    "[Default Dark+]": {
+    "[Default Dark Modern]": {
       "textMateRules": [
         {
           "scope": [
@@ -38,7 +63,7 @@
             "string.quoted.docstring.multi"
           ],
           "settings": {
-            "foreground": "#608B4E"
+            "foreground": "#608b4e"
           }
         },
         {
@@ -46,7 +71,7 @@
             "variable.parameter.function-call.python"
           ],
           "settings": {
-            "foreground": "#D4D4D4"
+            "foreground": "#d4d4d4"
           }
         },
         {
@@ -55,16 +80,7 @@
             "meta.member.access.python"
           ],
           "settings": {
-            "foreground": "#DCDCAA"
-          }
-        },
-        {
-          "scope": [
-            "keyword.operator.assignment.python",
-            "keyword.operator.comparison.python"
-          ],
-          "settings": {
-            "foreground": "#C586C0"
+            "foreground": "#dcdcaa"
           }
         }
       ]
@@ -72,17 +88,19 @@
   },
   "files.defaultLanguage": "python",
   "python.envFile": "${workspaceFolder}/.vscode/env",
-  "python.formatting.provider": "black",
+  "python.formatting.blackArgs": [
+    "--line-length=100"
+  ],
   "python.languageServer": "Pylance",
   "python.linting.enabled": true,
   "python.linting.flake8Args": [
-    "--max-line-length=88",
+    "--max-line-length=100",
     "--ignore=E203,W503",
     "--select=B,C,E,F,W,T4,B9",
     "--max-complexity=50"
   ],
   "python.linting.flake8Enabled": true,
-  "python.linting.mypyEnabled": true,
+  "python.linting.mypyEnabled": false,
   "python.linting.pydocstyleArgs": [
     "--ignore=D203,D205,D212,D413"
   ],
@@ -99,5 +117,9 @@
   "python.testing.unittestEnabled": false,
   "terminal.integrated.env.windows": {
     "PYTHONPATH": "./app"
-  }
+  },
+  "flake8.args": [
+    "--max-line-length=100",
+    "--ignore=E402,F841,F401,E302,E305"
+  ],
 }

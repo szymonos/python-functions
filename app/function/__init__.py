@@ -12,6 +12,7 @@ import azure.functions as func
 def main(req: func.HttpRequest) -> func.HttpResponse:
     """Says hello to user."""
     logging.info("Python HTTP trigger function processed a request.")
+    logging.info("Request parameters: %s", dict(req.params.items()))
 
     name = req.params.get("name")
     if not name:
