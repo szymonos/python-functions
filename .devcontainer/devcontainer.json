@@ -4,63 +4,71 @@
   "forwardPorts": [
     7071
   ],
-  "mounts": [
-    "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind",
-  ],
   // Set *default* container specific settings.json values on container create.
-  "settings": {
-    "terminal.integrated.defaultProfile.linux": "bash",
-    "terminal.integrated.profiles.linux": {
-      "bash": {
-        "icon": "terminal-bash",
-        "path": "bash"
-      },
-      "pwsh": {
-        "args": [
-          "-Login",
-          "-NoLogo"
-        ],
-        "icon": "terminal-powershell",
-        "path": "pwsh"
-      },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "aaron-bond.better-comments",
+        "davidanson.vscode-markdownlint",
+        "eamodio.gitlens",
+        "foxundermoon.shell-format",
+        "hbenl.vscode-test-explorer",
+        "kevinrose.vsc-python-indent",
+        "mechatroner.rainbow-csv",
+        "mhutchie.git-graph",
+        "ms-azuretools.vscode-azurefunctions",
+        "ms-azuretools.vscode-docker",
+        "ms-python.autopep8",
+        "ms-python.black-formatter",
+        "ms-python.flake8",
+        "ms-python.gather",
+        "ms-python.isort",
+        "ms-python.pylint",
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "ms-toolsai.jupyter",
+        "ms-vscode.powershell",
+        "ms-vscode-remote.remote-containers",
+        "njpwerner.autodocstring",
+        "oderwat.indent-rainbow",
+        "redhat.vscode-yaml",
+        "shardulm94.trailing-spaces",
+        "snooty.snooty",
+        "visualstudioexptteam.vscodeintellicode",
+        "vscode-icons-team.vscode-icons"
+      ],
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "bash",
+        "workbench.colorTheme": "Default Dark Modern",
+        "python.pythonPath": "/usr/local/bin/python",
+        "python.linting.enabled": true,
+        "python.linting.pylintEnabled": true,
+        "python.formatting.autopep8Path": "/usr/local/py-utils/bin/autopep8",
+        "python.formatting.blackPath": "/usr/local/py-utils/bin/black",
+        "python.formatting.yapfPath": "/usr/local/py-utils/bin/yapf",
+        "python.linting.banditPath": "/usr/local/py-utils/bin/bandit",
+        "python.linting.flake8Path": "/usr/local/py-utils/bin/flake8",
+        "python.linting.mypyPath": "/usr/local/py-utils/bin/mypy",
+        "python.linting.pycodestylePath": "/usr/local/py-utils/bin/pycodestyle",
+        "python.linting.pydocstylePath": "/usr/local/py-utils/bin/pydocstyle",
+        "python.linting.pylintPath": "/usr/local/py-utils/bin/pylint"
+      }
+    }
+  },
+  "remoteUser": "vscode",
+  "features": {
+    "ghcr.io/devcontainers/features/powershell:1": {
+      "version": "latest"
     },
-    "workbench.colorTheme": "Default Dark+",
-    "python.pythonPath": "/usr/local/bin/python",
-    "python.languageServer": "Pylance",
-    "python.linting.enabled": true,
-    "python.linting.pylintEnabled": true,
-    "python.formatting.autopep8Path": "/usr/local/py-utils/bin/autopep8",
-    "python.formatting.blackPath": "/usr/local/py-utils/bin/black",
-    "python.formatting.yapfPath": "/usr/local/py-utils/bin/yapf",
-    "python.linting.banditPath": "/usr/local/py-utils/bin/bandit",
-    "python.linting.flake8Path": "/usr/local/py-utils/bin/flake8",
-    "python.linting.mypyPath": "/usr/local/py-utils/bin/mypy",
-    "python.linting.pycodestylePath": "/usr/local/py-utils/bin/pycodestyle",
-    "python.linting.pydocstylePath": "/usr/local/py-utils/bin/pydocstyle",
-    "python.linting.pylintPath": "/usr/local/py-utils/bin/pylint"
+    "ghcr.io/jlaundry/devcontainer-features/mssql-odbc-driver:1": {
+      "version": "17"
+    },
+    "ghcr.io/guiyomh/features/vim:0": {},
+    "ghcr.io/devcontainers-contrib/features/exa:1": {
+      "version": "latest"
+    }
   },
   // Add the IDs of extensions you want installed when the container is created.
-  "extensions": [
-    "aaron-bond.better-comments",
-    "eamodio.gitlens",
-    "foxundermoon.shell-format",
-    "hbenl.vscode-test-explorer",
-    "kevinrose.vsc-python-indent",
-    "mechatroner.rainbow-csv",
-    "ms-azuretools.vscode-azurefunctions",
-    "ms-azuretools.vscode-docker",
-    "ms-python.anaconda-extension-pack",
-    "ms-python.python",
-    "ms-python.vscode-pylance",
-    "ms-toolsai.jupyter",
-    "ms-toolsai.jupyter-renderers",
-    "ms-vscode.powershell",
-    "nhoizey.gremlins",
-    "redhat.vscode-yaml",
-    "shardulm94.trailing-spaces",
-    "usernamehw.errorlens",
-    "visualstudioexptteam.vscodeintellicode"
-  ],
   "remoteEnv": {
     "APP_ROOT": "app",
     "APPCF_ENDPOINT": "${localEnv:APPCF_ENDPOINT}",
@@ -68,9 +76,9 @@
     "AZURE_CLIENT_SECRET": "${localEnv:AZURE_CLIENT_SECRET}",
     "AZURE_TENANT_ID": "${localEnv:AZURE_TENANT_ID}",
     "ENV_STATE": "Development",
-    "IMG_TAG": "v210101.1",
+    "IMG_TAG": "v220101.1",
     "PYTHONPATH": "./app"
   },
   // Install project requirements and update all packages.
-  "postCreateCommand": "bash pysetup.sh reqs"
+  "postCreateCommand": "bash .devcontainer/config/setup_cfg.sh"
 }
