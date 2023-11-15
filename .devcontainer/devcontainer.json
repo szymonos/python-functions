@@ -1,9 +1,4 @@
 {
-  "name": "Azure Functions & Python",
-  "dockerFile": "Dockerfile",
-  "forwardPorts": [
-    7071
-  ],
   // Set *default* container specific settings.json values on container create.
   "customizations": {
     "vscode": {
@@ -36,38 +31,28 @@
         "snooty.snooty",
         "visualstudioexptteam.vscodeintellicode",
         "vscode-icons-team.vscode-icons"
-      ],
-      "settings": {
-        "terminal.integrated.defaultProfile.linux": "bash",
-        "workbench.colorTheme": "Default Dark Modern",
-        "python.pythonPath": "/usr/local/bin/python",
-        "python.linting.enabled": true,
-        "python.linting.pylintEnabled": true,
-        "python.formatting.autopep8Path": "/usr/local/py-utils/bin/autopep8",
-        "python.formatting.blackPath": "/usr/local/py-utils/bin/black",
-        "python.formatting.yapfPath": "/usr/local/py-utils/bin/yapf",
-        "python.linting.banditPath": "/usr/local/py-utils/bin/bandit",
-        "python.linting.flake8Path": "/usr/local/py-utils/bin/flake8",
-        "python.linting.mypyPath": "/usr/local/py-utils/bin/mypy",
-        "python.linting.pycodestylePath": "/usr/local/py-utils/bin/pycodestyle",
-        "python.linting.pydocstylePath": "/usr/local/py-utils/bin/pydocstyle",
-        "python.linting.pylintPath": "/usr/local/py-utils/bin/pylint"
-      }
+      ]
     }
   },
-  "remoteUser": "vscode",
+  "dockerFile": "Dockerfile",
   "features": {
+    "ghcr.io/devcontainers-contrib/features/exa:1": {
+      "version": "latest"
+    },
     "ghcr.io/devcontainers/features/powershell:1": {
       "version": "latest"
     },
+    "ghcr.io/guiyomh/features/vim:0": {},
     "ghcr.io/jlaundry/devcontainer-features/mssql-odbc-driver:1": {
       "version": "17"
-    },
-    "ghcr.io/guiyomh/features/vim:0": {},
-    "ghcr.io/devcontainers-contrib/features/exa:1": {
-      "version": "latest"
     }
   },
+  "forwardPorts": [
+    7071
+  ],
+  "name": "Azure Functions & Python",
+  // Install project requirements and update all packages.
+  "postCreateCommand": "bash .devcontainer/config/setup_cfg.sh",
   // Add the IDs of extensions you want installed when the container is created.
   "remoteEnv": {
     "APP_ROOT": "app",
@@ -79,6 +64,5 @@
     "IMG_TAG": "v220101.1",
     "PYTHONPATH": "./app"
   },
-  // Install project requirements and update all packages.
-  "postCreateCommand": "bash .devcontainer/config/setup_cfg.sh"
+  "remoteUser": "vscode"
 }
